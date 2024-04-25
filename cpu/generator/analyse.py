@@ -57,7 +57,7 @@ def matchFunction(line, funcstr):
 
 def analyse(asmfile, funcname):
     category = [0, 0, 0, 0, 0, 0]
-    funcstr = str(len(funcname)) + funcname
+    funcstr = ''.join([str(len(id)) + id for id in str(funcname).split('::')])
 
     with open(asmfile, 'r') as f:
         collect = False
