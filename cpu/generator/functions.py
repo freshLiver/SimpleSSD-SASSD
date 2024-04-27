@@ -72,6 +72,7 @@
 #  38: writeNCQ
 #  39: writeDMASetup
 #  40: writeDMADone
+#  41: ISC
 function = [
     ["ftl/ftl.cc", "read", 0, 0],
     ["ftl/ftl.cc", "write", 0, 1],
@@ -155,4 +156,7 @@ function = [
     ["hil/sata/device.cc", "writeNCQ", 12, 38],
     ["hil/sata/device.cc", "_writeDMASetup", 12, 39],
     ["hil/sata/device.cc", "_writeDMADone", 12, 40],
+    ["hil/nvme/namespace.cc", "Namespace::isc", 9, 41],
+    ["hil/nvme/subsystem.cc", "Subsystem::isc", 8, 41],
+    ["hil/hil.cc", "HIL::isc", 4, 41],
 ]

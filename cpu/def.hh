@@ -109,7 +109,11 @@ typedef enum : uint16_t {
   WRITE_NCQ,
   WRITE_DMA_SETUP,
   WRITE_DMA_DONE,
+
+  ISC,
 } FUNCTION;
+
+static_assert(FUNCTION::ISC == 41, "Double check `functions.py`!!!");
 
 }  // namespace CPU
 

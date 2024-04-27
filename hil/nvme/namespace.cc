@@ -83,6 +83,10 @@ void Namespace::submitCommand(SQEntryWrapper &req, RequestFunction &func) {
         case OPCODE_READ:
           read(req, func);
           break;
+          break;
+        case OPCODE_ISC:
+          isc(req, func);
+          break;
         case OPCODE_COMPARE:
           compare(req, func);
           break;
@@ -451,7 +455,99 @@ void Namespace::read(SQEntryWrapper &req, RequestFunction &func) {
     pContext->nlb = nlb;
 
     CPUContext *pCPU =
-        new CPUContext(doRead, pContext, CPU::NVME__NAMESPACE, CPU::READ);
+        new CPUContext(doRead, pContext, CPU::NVME__NAMESPACE, CPU::ISC);
+
+    if (req.useSGL) {
+      pContext->dma =
+          new SGL(cfgdata, cpuHandler, pCPU, req.entry.data1, req.entry.data2);
+    }
+    else {
+      pContext->dma =
+          new PRPList(cfgdata, cpuHandler, pCPU, req.entry.data1,
+                      req.entry.data2, pContext->nlb * info.lbaSize);
+    }
+  }
+  else {
+    func(resp);
+  }
+}
+
+void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
+  bool err = false;
+
+  CQEntryWrapper resp(req);
+  uint64_t slba = ((uint64_t)req.entry.dword11 << 32) | req.entry.dword10;
+  uint16_t nlb = (req.entry.dword12 & 0xFFFF) + 1;
+  // bool fua = req.entry.dword12 & 0x40000000;
+
+  if (!attached) {
+    err = true;
+    resp.makeStatus(true, false, TYPE_COMMAND_SPECIFIC_STATUS,
+                    STATUS_NAMESPACE_NOT_ATTACHED);
+  }
+  if (nlb == 0) {
+    err = true;
+    warn("nvme_namespace: host tried to read 0 blocks");
+  }
+
+  debugprint(LOG_HIL_NVME,
+             "NVM     | ISC  | SQ %u:%u | CID %u | NSID %-5d | %" PRIX64
+             " + %d",
+             req.sqID, req.sqUID, req.entry.dword0.commandID, nsid, slba, nlb);
+
+  if (!err) {
+    DMAFunction doISC = [this](uint64_t tick, void *context) {
+      DMAFunction dmaDone = [this](uint64_t tick, void *context) {
+        IOContext *pContext = (IOContext *)context;
+
+        pContext->beginAt++;
+
+        if (pContext->beginAt == 2) {
+          debugprint(
+              LOG_HIL_NVME,
+              "NVM     | ISC  | CQ %u | SQ %u:%u | CID %u | NSID %-5d | "
+              "%" PRIX64 " + %d | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")",
+              pContext->resp.cqID, pContext->resp.entry.dword2.sqID,
+              pContext->resp.sqUID, pContext->resp.entry.dword3.commandID, nsid,
+              pContext->slba, pContext->nlb, pContext->tick, tick,
+              tick - pContext->tick);
+
+          pContext->function(pContext->resp);
+
+          if (pContext->buffer) {
+            free(pContext->buffer);
+          }
+
+          delete pContext->dma;
+          delete pContext;
+        }
+      };
+
+      IOContext *pContext = (IOContext *)context;
+
+      pContext->tick = tick;
+      pContext->beginAt = 0;
+
+      pParent->isc(this, pContext->slba, pContext->nlb, dmaDone, pContext);
+
+      pContext->buffer = (uint8_t *)calloc(pContext->nlb, info.lbaSize);
+
+      if (pDisk) {
+        pDisk->read(pContext->slba, pContext->nlb, pContext->buffer);
+      }
+
+      pContext->dma->write(0, pContext->nlb * info.lbaSize, pContext->buffer,
+                           dmaDone, context);
+    };
+
+    IOContext *pContext = new IOContext(func, resp);
+
+    pContext->beginAt = getTick();
+    pContext->slba = slba;
+    pContext->nlb = nlb;
+
+    CPUContext *pCPU =
+        new CPUContext(doISC, pContext, CPU::NVME__NAMESPACE, CPU::READ);
 
     if (req.useSGL) {
       pContext->dma =

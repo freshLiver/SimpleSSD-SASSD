@@ -69,6 +69,38 @@ void HIL::read(Request &req) {
   execute(CPU::HIL, CPU::READ, doRead, new Request(req));
 }
 
+void HIL::isc(Request &req) {
+  DMAFunction doISC = [this](uint64_t beginAt, void *context) {
+    auto pReq = (Request *)context;
+    uint64_t tick = beginAt;
+
+    pReq->reqID = ++reqCount;
+
+    debugprint(LOG_HIL,
+               "ISC  | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
+               " + %" PRIu64,
+               pReq->reqID, pReq->range.slpn, pReq->range.nlp, pReq->offset,
+               pReq->length);
+
+    ICL::Request reqInternal(*pReq);
+    pICL->read(reqInternal, tick);
+
+    stat.request[0]++;
+    stat.iosize[0] += pReq->length;
+    updateBusyTime(0, beginAt, tick);
+    updateBusyTime(2, beginAt, tick);
+
+    pReq->finishedAt = tick;
+    completionQueue.push(*pReq);
+
+    updateCompletion();
+
+    delete pReq;
+  };
+
+  execute(CPU::HIL, CPU::ISC, doISC, new Request(req));
+}
+
 void HIL::write(Request &req) {
   DMAFunction doWrite = [this](uint64_t beginAt, void *context) {
     auto pReq = (Request *)context;
