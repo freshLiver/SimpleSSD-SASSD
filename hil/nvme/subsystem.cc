@@ -449,19 +449,16 @@ void Subsystem::read(Namespace *ns, uint64_t slba, uint64_t nlblk,
 }
 
 void Subsystem::isc(Namespace *ns, uint64_t slba, uint64_t nlblk,
-                     DMAFunction &func, void *context) {
-  Request *req = new Request(func, context);
-  DMAFunction doISC = [this](uint64_t, void *context) {
-    auto req = (Request *)context;
-
-    pHIL->isc(*req);
-
-    delete req;
+                    DMAFunction &dmaDone, void *ioCtx) {
+  Request *hReq = new Request(dmaDone, ioCtx);
+  DMAFunction doISC = [this](uint64_t, void *hReq) {
+    pHIL->isc(*(Request *)hReq);
+    delete (Request *)hReq;
   };
 
-  convertUnit(ns, slba, nlblk, *req);
+  convertUnit(ns, slba, nlblk, *hReq);
 
-  execute(CPU::NVME__SUBSYSTEM, CPU::CONVERT_UNIT, doISC, req);
+  execute(CPU::NVME__SUBSYSTEM, CPU::CONVERT_UNIT, doISC, hReq);
 }
 
 void Subsystem::write(Namespace *ns, uint64_t slba, uint64_t nlblk,

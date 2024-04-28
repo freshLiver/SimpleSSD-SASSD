@@ -61,10 +61,10 @@ typedef struct _Request {
 namespace ICL {
 
 typedef struct _Request {
-  uint64_t reqID;
-  uint64_t reqSubID;
-  uint64_t offset;
-  uint64_t length;
+  uint64_t reqID;     // HIL::reqCount
+  uint64_t reqSubID;  // ICL::ilp + 1
+  uint64_t offset;    // logical block offset in this page
+  uint64_t length;    // nlb * bsz
   LPNRange range;
 
   _Request();
