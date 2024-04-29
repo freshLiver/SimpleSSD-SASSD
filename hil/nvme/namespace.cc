@@ -22,6 +22,12 @@
 #include "hil/nvme/subsystem.hh"
 #include "util/algorithm.hh"
 
+// add isc headers after this
+#include "isc/sims/ftl.hh"
+
+#include "isc/fs/ext4/ext4.hh"
+#include "isc/runtime.hh"
+
 namespace SimpleSSD {
 
 namespace HIL {
@@ -42,6 +48,7 @@ Namespace::~Namespace() {
   if (pDisk) {
     delete pDisk;
   }
+  ISC::SIM::FTL::destory();
 }
 
 void Namespace::submitCommand(SQEntryWrapper &req, RequestFunction &func) {
@@ -144,6 +151,8 @@ void Namespace::setData(uint32_t id, Information *data) {
       SimpleSSD::info("Using disk image at %s for NSID %u", filename.c_str(),
                       nsid);
     }
+
+    ISC::SIM::FTL::setImage(filename.c_str());
   }
 
   allocated = true;
@@ -473,7 +482,7 @@ void Namespace::read(SQEntryWrapper &req, RequestFunction &func) {
 }
 
 void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
-  bool err = false;
+  bool noDMA = false;
 
   CQEntryWrapper resp(req);
   uint64_t slba = ((uint64_t)req.entry.dword11 << 32) | req.entry.dword10;
@@ -481,12 +490,21 @@ void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
   // bool fua = req.entry.dword12 & 0x40000000;
 
   if (!attached) {
-    err = true;
+    noDMA = true;
     resp.makeStatus(true, false, TYPE_COMMAND_SPECIFIC_STATUS,
                     STATUS_NAMESPACE_NOT_ATTACHED);
   }
   if (nlb == 0) {
-    err = true;
+    noDMA = true;
+
+    if (slba == 0x51ab) {
+      ISC::Runtime::addSlet<ISC::Ext4>();
+    }
+
+    if (slba == 0xba15) {
+      ISC::Runtime::destory();
+    }
+
     warn("nvme_namespace: host tried to read 0 blocks");
   }
 
@@ -495,7 +513,7 @@ void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
              " + %d",
              req.sqID, req.sqUID, req.entry.dword0.commandID, nsid, slba, nlb);
 
-  if (!err) {
+  if (!noDMA) {
     DMAFunction doISC = [this](uint64_t tick, void *context) {
       DMAFunction dmaDone = [this](uint64_t tick, void *context) {
         IOContext *pContext = (IOContext *)context;
