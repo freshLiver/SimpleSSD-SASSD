@@ -497,6 +497,7 @@ void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
   if (nlb == 0) {
     noDMA = true;
 
+    // the setData() function may be called after CTOR, init Runtime here
     if (slba == 0x51ab) {
       ISC::Runtime::addSlet<ISC::Ext4>();
     }
