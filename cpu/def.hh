@@ -113,8 +113,6 @@ typedef enum : uint16_t {
   ISC,
 } FUNCTION;
 
-static_assert(FUNCTION::ISC == 41, "Double check `functions.py`!!!");
-
 }  // namespace CPU
 
 }  // namespace SimpleSSD

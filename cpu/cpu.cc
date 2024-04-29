@@ -296,11 +296,17 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
       {39, InstStat(18, 56, 10, 37, 0, 1, clockPeriod)});
   cpi.find(12)->second.insert(
       {40, InstStat(33, 100, 17, 61, 0, 3, clockPeriod)});
+
   cpi.find(9)->second.insert(
       {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
       {41, InstStat(35, 180, 39, 76, 0, 2, clockPeriod)});
+
+  static_assert(FUNCTION::ISC == 41, "Unexpected FUNCTION ID");
+  static_assert(NAMESPACE::HIL == 4, "Unexpected NAMESPACE ID");
+  static_assert(NAMESPACE::NVME__SUBSYSTEM == 8, "Unexpected NAMESPACE ID");
+  static_assert(NAMESPACE::NVME__NAMESPACE == 9, "Unexpected NAMESPACE ID");
 }
 
 CPU::~CPU() {}
