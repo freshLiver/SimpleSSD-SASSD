@@ -51,6 +51,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/lib/mcpat
   ${PROJECT_SOURCE_DIR}/lib/mcpat/cacti
   ${PROJECT_SOURCE_DIR}/lib/inih
+  ${PROJECT_SOURCE_DIR}/isc
   ${DRAMPOWER_SOURCE_DIR}
 )
 
@@ -98,6 +99,23 @@ set(SRC_FTL
   ftl/config.cc
   ftl/ftl.cc
   ftl/page_mapping.cc
+)
+set(SRC_ISC
+  isc/runtime.cc
+)
+set(SRC_ISC_SIM
+  isc/sims/ftl.cc
+  isc/sims/dram.cc
+)
+set(SRC_ISC_UTILS
+  isc/utils/debug.cc
+)
+set(SRC_ISC_SLET
+  isc/slet/slet.cc
+)
+set(SRC_ISC_FSA
+  isc/fs/fsa.cc
+  isc/fs/ext4/ext4.cc
 )
 set(SRC_HIL_NVME
   hil/nvme/abstract_subsystem.cc
@@ -167,6 +185,11 @@ SOURCE_GROUP("Source Files\\cpu" FILES ${SRC_CPU})
 SOURCE_GROUP("Source Files\\dram" FILES ${SRC_DRAM})
 SOURCE_GROUP("Source Files\\ftl" FILES ${SRC_FTL})
 SOURCE_GROUP("Source Files\\ftl\\common" FILES ${SRC_FTL_COMMON})
+SOURCE_GROUP("Source Files\\isc" FILES ${SRC_ISC})
+SOURCE_GROUP("Source Files\\isc\\sim" FILES ${SRC_ISC_SIM})
+SOURCE_GROUP("Source Files\\isc\\util" FILES ${SRC_ISC_UTILS})
+SOURCE_GROUP("Source Files\\isc\\slet" FILES ${SRC_ISC_SLET})
+SOURCE_GROUP("Source Files\\isc\\fs" FILES ${SRC_ISC_FSA})
 SOURCE_GROUP("Source Files\\hil" FILES ${SRC_HIL})
 SOURCE_GROUP("Source Files\\hil\\nvme" FILES ${SRC_HIL_NVME})
 SOURCE_GROUP("Source Files\\hil\\sata" FILES ${SRC_HIL_SATA})
@@ -184,6 +207,11 @@ add_library(simplessd STATIC
   ${SRC_DRAM}
   ${SRC_FTL}
   ${SRC_FTL_COMMON}
+  ${SRC_ISC}
+  ${SRC_ISC_SIM}
+  ${SRC_ISC_UTILS}
+  ${SRC_ISC_SLET}
+  ${SRC_ISC_FSA}
   ${SRC_HIL}
   ${SRC_HIL_NVME}
   ${SRC_HIL_SATA}

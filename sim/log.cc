@@ -107,6 +107,14 @@ const std::string logName[LOG_NUM] = {
     "FTL::PageMapping",   //!< LOG_FTL_PAGE_MAPPING
     "PAL",                //!< LOG_PAL
     "PAL::PALOLD",        //!< LOG_PAL_OLD
+    "ISC",                //!< LOG_ISC
+    "ISC::UTIL",          //!< LOG_ISC_UTIL
+    "ISC::UTIL::FTL",     //!< LOG_ISC_UTIL_FTL
+    "ISC::UTIL::MEM",     //!< LOG_ISC_UTIL_MEM
+    "ISC::RUNTIME",       //!< LOG_ISC_RUNTIME
+    "ISC::SLET",          //!< LOG_ISC_SLET
+    "ISC::FSA",           //!< LOG_ISC_FSA
+    "ISC::FSA::EXT4",           //!< LOG_ISC_EXT4
 };
 
 void debugprint(LOG_ID id, const char *format, ...) {
