@@ -111,6 +111,7 @@ class CPU : public StatObject {
   std::vector<Core> hilCore;
   std::vector<Core> iclCore;
   std::vector<Core> ftlCore;
+  std::vector<Core> iscCore;
 
   // CPIs
   std::unordered_map<uint16_t, std::unordered_map<uint16_t, InstStat>> cpi;

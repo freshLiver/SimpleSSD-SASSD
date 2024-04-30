@@ -23,6 +23,9 @@
 
 #include "sim/trace.hh"
 
+// isc configs
+#include "isc/configs.hh"
+
 namespace SimpleSSD {
 
 namespace CPU {
@@ -141,7 +144,11 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
 
   hilCore.resize(conf.readUint(CONFIG_CPU, CPU_CORE_HIL));
   iclCore.resize(conf.readUint(CONFIG_CPU, CPU_CORE_ICL));
-  ftlCore.resize(conf.readUint(CONFIG_CPU, CPU_CORE_FTL));
+  ftlCore.resize(conf.readUint(CONFIG_CPU, CPU_CORE_FTL) - NUM_ISC_CORES);
+  iscCore.resize(NUM_ISC_CORES);
+
+  assert(ftlCore.size() > 0 || !"Number of FTL Cores not expected to be zero");
+  assert(iscCore.size() > 0 || !"Number of ISC Cores not expected to be zero");
 
   // Initialize CPU table
   cpi.insert({FTL, std::unordered_map<uint16_t, InstStat>()});
@@ -315,7 +322,8 @@ void CPU::calculatePower(Power &power) {
   // Print stats before die
   ParseXML param;
   uint64_t simCycle = (getTick() - lastResetStat) / clockPeriod;
-  uint32_t totalCore = hilCore.size() + iclCore.size() + ftlCore.size();
+  uint32_t totalCore =
+      hilCore.size() + iclCore.size() + ftlCore.size() + iscCore.size();
   uint32_t coreIdx = 0;
 
   param.initialize();
@@ -476,7 +484,7 @@ void CPU::calculatePower(Power &power) {
 
   // Core stat
   coreIdx = 0;
-  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore, &iscCore}) {
     for (auto &core : *cores) {
       CoreStat &stat = core.getStat();
 
@@ -665,6 +673,14 @@ void CPU::execute(NAMESPACE ns, FUNCTION fct, DMAFunction &func, void *context,
       }
 
       break;
+    case ISC__RUNTIME:
+    case ISC__SLET:
+    case ISC__FSA:
+      if (iscCore.size() > 0) {
+        pCore = &iscCore.at(leastBusyCPU(iscCore));
+      }
+
+      break;
     case ICL:
     case ICL__GENERIC_CACHE:
       if (iclCore.size() > 0) {
@@ -726,6 +742,14 @@ uint64_t CPU::applyLatency(NAMESPACE ns, FUNCTION fct) {
       }
 
       break;
+    case ISC__RUNTIME:
+    case ISC__SLET:
+    case ISC__FSA:
+      if (iscCore.size() > 0) {
+        pCore = &iscCore.at(leastBusyCPU(iscCore));
+      }
+
+      break;
     case ICL:
     case ICL__GENERIC_CACHE:
       if (iclCore.size() > 0) {
@@ -784,6 +808,7 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
       {&hilCore, ".hil", "HIL"},
       {&iclCore, ".icl", "ICL"},
       {&ftlCore, ".ftl", "FTL"},
+      {&iscCore, ".isc", "ISC"},
   };
 
   for (auto &core : coreList) {
@@ -826,7 +851,7 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
 }
 
 void CPU::getStatValues(std::vector<double> &values) {
-  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore, &iscCore}) {
     for (auto &core : *cores) {
       auto &stat = core.getStat();
 
@@ -844,7 +869,7 @@ void CPU::getStatValues(std::vector<double> &values) {
 void CPU::resetStatValues() {
   lastResetStat = getTick();
 
-  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore, &iscCore}) {
     for (auto &core : *cores) {
       auto &stat = core.getStat();
 
