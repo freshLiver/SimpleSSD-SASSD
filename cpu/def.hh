@@ -116,6 +116,7 @@ typedef enum : uint16_t {
   WRITE_DMA_DONE,
 
   ISC,
+  RT_ADD_SLET__EXT4,
 } FUNCTION;
 
 }  // namespace CPU

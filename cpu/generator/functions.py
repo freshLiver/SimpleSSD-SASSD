@@ -159,4 +159,5 @@ function = [
     ["hil/nvme/namespace.cc", "Namespace::isc", 9, 41],
     ["hil/nvme/subsystem.cc", "Subsystem::isc", 8, 41],
     ["hil/hil.cc", "HIL::isc", 4, 41],
+    ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>", 13, 42],
 ]

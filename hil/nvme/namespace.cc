@@ -499,7 +499,9 @@ void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
 
     // the setData() function may be called after CTOR, init Runtime here
     if (slba == 0x51ab) {
-      ISC::Runtime::addSlet<ISC::Ext4>();
+      if (ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Ext4>())
+        panic("Failed to setup predefined slets");
+      applyLatency(CPU::ISC__RUNTIME, CPU::RT_ADD_SLET__EXT4);
     }
 
     if (slba == 0xba15) {
