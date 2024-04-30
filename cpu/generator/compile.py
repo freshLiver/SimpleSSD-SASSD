@@ -48,6 +48,7 @@ def disassemble(objdump, src, dst):
     command = [objdump,
                '-S',
                '-d',
+               '-C',
                src]
 
     proc = subprocess.Popen(
