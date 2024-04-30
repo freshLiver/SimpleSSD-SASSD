@@ -470,48 +470,21 @@ void CPU::calculatePower(Power &power) {
 
   // Core stat
   coreIdx = 0;
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+    for (auto &core : *cores) {
+      CoreStat &stat = core.getStat();
 
-  for (auto &core : hilCore) {
-    CoreStat &stat = core.getStat();
+      param.sys.core[coreIdx].total_instructions = stat.instStat.sum();
+      param.sys.core[coreIdx].int_instructions = stat.instStat.arithmetic;
+      param.sys.core[coreIdx].fp_instructions = stat.instStat.floatingPoint;
+      param.sys.core[coreIdx].branch_instructions = stat.instStat.branch;
+      param.sys.core[coreIdx].load_instructions = stat.instStat.load;
+      param.sys.core[coreIdx].store_instructions = stat.instStat.store;
+      param.sys.core[coreIdx].busy_cycles = stat.busy / clockPeriod;
 
-    param.sys.core[coreIdx].total_instructions = stat.instStat.sum();
-    param.sys.core[coreIdx].int_instructions = stat.instStat.arithmetic;
-    param.sys.core[coreIdx].fp_instructions = stat.instStat.floatingPoint;
-    param.sys.core[coreIdx].branch_instructions = stat.instStat.branch;
-    param.sys.core[coreIdx].load_instructions = stat.instStat.load;
-    param.sys.core[coreIdx].store_instructions = stat.instStat.store;
-    param.sys.core[coreIdx].busy_cycles = stat.busy / clockPeriod;
-
-    coreIdx++;
+      coreIdx++;
+    }
   }
-
-  for (auto &core : iclCore) {
-    CoreStat &stat = core.getStat();
-
-    param.sys.core[coreIdx].total_instructions = stat.instStat.sum();
-    param.sys.core[coreIdx].int_instructions = stat.instStat.arithmetic;
-    param.sys.core[coreIdx].fp_instructions = stat.instStat.floatingPoint;
-    param.sys.core[coreIdx].branch_instructions = stat.instStat.branch;
-    param.sys.core[coreIdx].load_instructions = stat.instStat.load;
-    param.sys.core[coreIdx].store_instructions = stat.instStat.store;
-    param.sys.core[coreIdx].busy_cycles = stat.busy / clockPeriod;
-
-    coreIdx++;
-  }
-
-  for (auto &core : ftlCore) {
-    CoreStat &stat = core.getStat();
-
-    param.sys.core[coreIdx].total_instructions = stat.instStat.sum();
-    param.sys.core[coreIdx].int_instructions = stat.instStat.arithmetic;
-    param.sys.core[coreIdx].fp_instructions = stat.instStat.floatingPoint;
-    param.sys.core[coreIdx].branch_instructions = stat.instStat.branch;
-    param.sys.core[coreIdx].load_instructions = stat.instStat.load;
-    param.sys.core[coreIdx].store_instructions = stat.instStat.store;
-    param.sys.core[coreIdx].busy_cycles = stat.busy / clockPeriod;
-
-    coreIdx++;
-  };
 
   for (coreIdx = 0; coreIdx < totalCore; coreIdx++) {
     param.sys.core[coreIdx].total_cycles = simCycle;
@@ -801,169 +774,77 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
   Stats temp;
   std::string number;
 
-  for (uint32_t i = 0; i < hilCore.size(); i++) {
-    number = std::to_string(i);
+  std::tuple<std::vector<Core> *, std::string, std::string> coreList[] = {
+      {&hilCore, ".hil", "HIL"},
+      {&iclCore, ".icl", "ICL"},
+      {&ftlCore, ".ftl", "FTL"},
+  };
 
-    temp.name = prefix + ".hil" + number + ".busy";
-    temp.desc = "CPU for HIL core " + number + " busy ticks";
-    list.push_back(temp);
+  for (auto &core : coreList) {
+    for (uint32_t i = 0; i < std::get<0>(core)->size(); i++) {
+      number = std::to_string(i);
 
-    temp.name = prefix + ".hil" + number + ".insts.branch";
-    temp.desc = "CPU for HIL core " + number + " executed branch instructions";
-    list.push_back(temp);
+      const auto namePfx = prefix + std::get<1>(core) + number;
+      const auto descPfx = "CPU for " + std::get<2>(core) + " core " + number;
+      ;
 
-    temp.name = prefix + ".hil" + number + ".insts.load";
-    temp.desc = "CPU for HIL core " + number + " executed load instructions";
-    list.push_back(temp);
+      temp.name = namePfx + ".busy";
+      temp.desc = descPfx + " busy ticks";
+      list.push_back(temp);
 
-    temp.name = prefix + ".hil" + number + ".insts.store";
-    temp.desc = "CPU for HIL core " + number + " executed store instructions";
-    list.push_back(temp);
+      temp.name = namePfx + ".insts.branch";
+      temp.desc = descPfx + " executed branch instructions";
+      list.push_back(temp);
 
-    temp.name = prefix + ".hil" + number + ".insts.arithmetic";
-    temp.desc =
-        "CPU for HIL core " + number + " executed arithmetic instructions";
-    list.push_back(temp);
+      temp.name = namePfx + ".insts.load";
+      temp.desc = descPfx + " executed load instructions";
+      list.push_back(temp);
 
-    temp.name = prefix + ".hil" + number + ".insts.fp";
-    temp.desc =
-        "CPU for HIL core " + number + " executed floating point instructions";
-    list.push_back(temp);
+      temp.name = namePfx + ".insts.store";
+      temp.desc = descPfx + " executed store instructions";
+      list.push_back(temp);
 
-    temp.name = prefix + ".hil" + number + ".insts.others";
-    temp.desc = "CPU for HIL core " + number + " executed other instructions";
-    list.push_back(temp);
-  }
+      temp.name = namePfx + ".insts.arithmetic";
+      temp.desc = descPfx + " executed arithmetic instructions";
+      list.push_back(temp);
 
-  for (uint32_t i = 0; i < iclCore.size(); i++) {
-    number = std::to_string(i);
+      temp.name = namePfx + ".insts.fp";
+      temp.desc = descPfx + " executed floating point instructions";
+      list.push_back(temp);
 
-    temp.name = prefix + ".icl" + number + ".busy";
-    temp.desc = "CPU for ICL core " + number + " busy ticks";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.branch";
-    temp.desc = "CPU for ICL core " + number + " executed branch instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.load";
-    temp.desc = "CPU for ICL core " + number + " executed load instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.store";
-    temp.desc = "CPU for ICL core " + number + " executed store instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.arithmetic";
-    temp.desc =
-        "CPU for ICL core " + number + " executed arithmetic instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.fp";
-    temp.desc =
-        "CPU for ICL core " + number + " executed floating point instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".icl" + number + ".insts.others";
-    temp.desc = "CPU for ICL core " + number + " executed other instructions";
-    list.push_back(temp);
-  }
-
-  for (uint32_t i = 0; i < ftlCore.size(); i++) {
-    number = std::to_string(i);
-
-    temp.name = prefix + ".ftl" + number + ".busy";
-    temp.desc = "CPU for FTL core " + number + " busy ticks";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.branch";
-    temp.desc = "CPU for FTL core " + number + " executed branch instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.load";
-    temp.desc = "CPU for FTL core " + number + " executed store instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.store";
-    temp.desc = "CPU for FTL core " + number + " executed load instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.arithmetic";
-    temp.desc =
-        "CPU for FTL core " + number + " executed arithmetic instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.fp";
-    temp.desc =
-        "CPU for FTL core " + number + " executed floating point instructions";
-    list.push_back(temp);
-
-    temp.name = prefix + ".ftl" + number + ".insts.others";
-    temp.desc = "CPU for FTL core " + number + " executed other instructions";
-    list.push_back(temp);
+      temp.name = namePfx + ".insts.others";
+      temp.desc = descPfx + " executed other instructions";
+      list.push_back(temp);
+    }
   }
 }
 
 void CPU::getStatValues(std::vector<double> &values) {
-  for (auto &core : hilCore) {
-    auto &stat = core.getStat();
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+    for (auto &core : *cores) {
+      auto &stat = core.getStat();
 
-    values.push_back(stat.busy);
-    values.push_back(stat.instStat.branch);
-    values.push_back(stat.instStat.load);
-    values.push_back(stat.instStat.store);
-    values.push_back(stat.instStat.arithmetic);
-    values.push_back(stat.instStat.floatingPoint);
-    values.push_back(stat.instStat.otherInsts);
-  }
-
-  for (auto &core : iclCore) {
-    auto &stat = core.getStat();
-
-    values.push_back(stat.busy);
-    values.push_back(stat.instStat.branch);
-    values.push_back(stat.instStat.load);
-    values.push_back(stat.instStat.store);
-    values.push_back(stat.instStat.arithmetic);
-    values.push_back(stat.instStat.floatingPoint);
-    values.push_back(stat.instStat.otherInsts);
-  }
-
-  for (auto &core : ftlCore) {
-    auto &stat = core.getStat();
-
-    values.push_back(stat.busy);
-    values.push_back(stat.instStat.branch);
-    values.push_back(stat.instStat.load);
-    values.push_back(stat.instStat.store);
-    values.push_back(stat.instStat.arithmetic);
-    values.push_back(stat.instStat.floatingPoint);
-    values.push_back(stat.instStat.otherInsts);
+      values.push_back(stat.busy);
+      values.push_back(stat.instStat.branch);
+      values.push_back(stat.instStat.load);
+      values.push_back(stat.instStat.store);
+      values.push_back(stat.instStat.arithmetic);
+      values.push_back(stat.instStat.floatingPoint);
+      values.push_back(stat.instStat.otherInsts);
+    }
   }
 }
 
 void CPU::resetStatValues() {
   lastResetStat = getTick();
 
-  for (auto &core : hilCore) {
-    auto &stat = core.getStat();
+  for (auto &cores : {&hilCore, &iclCore, &ftlCore}) {
+    for (auto &core : *cores) {
+      auto &stat = core.getStat();
 
-    stat.busy = 0;
-    stat.instStat = InstStat();
-  }
-
-  for (auto &core : iclCore) {
-    auto &stat = core.getStat();
-
-    stat.busy = 0;
-    stat.instStat = InstStat();
-  }
-
-  for (auto &core : ftlCore) {
-    auto &stat = core.getStat();
-
-    stat.busy = 0;
-    stat.instStat = InstStat();
+      stat.busy = 0;
+      stat.instStat = InstStat();
+    }
   }
 }
 
