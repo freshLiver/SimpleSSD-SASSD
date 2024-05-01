@@ -164,9 +164,6 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.insert({NVME__OCSSD, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({UFS__DEVICE, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({SATA__DEVICE, std::unordered_map<uint16_t, InstStat>()});
-  cpi.insert({ISC__RUNTIME, std::unordered_map<uint16_t, InstStat>()});
-  cpi.insert({ISC__SLET, std::unordered_map<uint16_t, InstStat>()});
-  cpi.insert({ISC__FSA, std::unordered_map<uint16_t, InstStat>()});
 
   // Insert item (Use cpu/generator/generate.py to generate this code)
   cpi.find(0)->second.insert({0, InstStat(5, 32, 6, 13, 0, 1, clockPeriod)});
@@ -307,20 +304,35 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.find(12)->second.insert(
       {40, InstStat(33, 100, 17, 61, 0, 3, clockPeriod)});
 
+  // CPIs for ISC module
+  cpi.insert({ISC__RUNTIME, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__SLET, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__FSA, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__FSA__EXT4, std::unordered_map<uint16_t, InstStat>()});
+
   cpi.find(9)->second.insert(
       {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
       {41, InstStat(35, 180, 39, 76, 0, 2, clockPeriod)});
   cpi.find(13)->second.insert({42, InstStat(8, 32, 9, 23, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {43, InstStat(23, 116, 36, 174, 0, 1, clockPeriod)});
+  cpi.find(16)->second.insert({44, InstStat(10, 20, 6, 23, 0, 0, clockPeriod)});
 
   static_assert(FUNCTION::ISC == 41, "Unexpected FUNCTION ID");
-  static_assert(FUNCTION::RT_ADD_SLET__EXT4 == 42, "Unexpected FUNCTION ID");
+  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 42, "Unexpected FUNCTION ID");
+  static_assert(FUNCTION::ISC__INIT == 43, "Unexpected FUNCTION ID");
+  static_assert(FUNCTION::ISC__GET_SUPER == 44, "Unexpected FUNCTION ID");
 
   static_assert(NAMESPACE::HIL == 4, "Unexpected NAMESPACE ID");
   static_assert(NAMESPACE::NVME__SUBSYSTEM == 8, "Unexpected NAMESPACE ID");
   static_assert(NAMESPACE::NVME__NAMESPACE == 9, "Unexpected NAMESPACE ID");
   static_assert(NAMESPACE::ISC__RUNTIME == 13, "Unexpected NAMESPACE ID");
+  static_assert(NAMESPACE::ISC__SLET == 14, "Unexpected NAMESPACE ID");
+  static_assert(NAMESPACE::ISC__FSA == 15, "Unexpected NAMESPACE ID");
+  static_assert(NAMESPACE::ISC__FSA__EXT4 == 16, "Unexpected NAMESPACE ID");
+  assert(cpi.size() == NAMESPACE::TOTAL_NAMESPACES || !"Some CPIs are missing");
 }
 
 CPU::~CPU() {}
@@ -733,6 +745,7 @@ void CPU::execute(NAMESPACE ns, FUNCTION fct, DMAFunction &func, void *context,
     pCore->submitJob(JobEntry(func, context, &inst->second), delay);
   }
   else {
+    panic("CPI not found");
     func(getTick(), context);
   }
 }
@@ -752,6 +765,7 @@ uint64_t CPU::applyLatency(NAMESPACE ns, FUNCTION fct) {
     case ISC__RUNTIME:
     case ISC__SLET:
     case ISC__FSA:
+    case ISC__FSA__EXT4:
       if (iscCore.size() > 0) {
         pCore = &iscCore.at(leastBusyCPU(iscCore));
       }

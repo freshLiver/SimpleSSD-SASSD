@@ -156,8 +156,24 @@ function = [
     ["hil/sata/device.cc", "writeNCQ", 12, 38],
     ["hil/sata/device.cc", "_writeDMASetup", 12, 39],
     ["hil/sata/device.cc", "_writeDMADone", 12, 40],
+]
+
+# add here for change the += to = for testing to avoid comment all the other functions
+#
+# NAMESPACE::ISC__RUNTIME == 13
+# NAMESPACE::ISC__SLET == 14
+# NAMESPACE::ISC__FSA == 15
+# NAMESPACE::ISC__FSA__EXT4 == 16
+#
+# FUNCTION::ISC == 41
+# FUNCTION::ISC__ADD_SLET__EXT4 == 42
+# FUNCTION::ISC__INIT == 43
+# FUNCTION::ISC__GET_SUPER == 44
+function = [
     ["hil/nvme/namespace.cc", "Namespace::isc", 9, 41],
     ["hil/nvme/subsystem.cc", "Subsystem::isc", 8, 41],
     ["hil/hil.cc", "HIL::isc", 4, 41],
     ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>", 13, 42],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::Ext4", 16, 43],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getSuper", 16, 44],
 ]

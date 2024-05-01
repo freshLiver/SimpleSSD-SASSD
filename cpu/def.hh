@@ -47,6 +47,9 @@ typedef enum : uint16_t {
   ISC__RUNTIME,
   ISC__SLET,
   ISC__FSA,
+  ISC__FSA__EXT4,
+
+  TOTAL_NAMESPACES
 } NAMESPACE;
 
 typedef enum : uint16_t {
@@ -116,7 +119,12 @@ typedef enum : uint16_t {
   WRITE_DMA_DONE,
 
   ISC,
-  RT_ADD_SLET__EXT4,
+  ISC__ADD_SLET__EXT4,
+  // FS funcs
+  ISC__INIT,
+  ISC__GET_SUPER,
+  ISC__GET_INODE,
+  ISC__GET_EXTENT,
 } FUNCTION;
 
 }  // namespace CPU

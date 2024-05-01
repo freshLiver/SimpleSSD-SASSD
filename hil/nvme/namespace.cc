@@ -25,9 +25,6 @@
 // add isc headers after this
 #include "isc/sims/ftl.hh"
 
-#include "isc/fs/ext4/ext4.hh"
-#include "isc/runtime.hh"
-
 namespace SimpleSSD {
 
 namespace HIL {
@@ -496,18 +493,6 @@ void Namespace::isc(SQEntryWrapper &req, RequestFunction &func) {
   }
   if (nlb == 0) {
     noDMA = true;
-
-    // the setData() function may be called after CTOR, init Runtime here
-    if (slba == 0x51ab) {
-      if (ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Ext4>())
-        panic("Failed to setup predefined slets");
-      applyLatency(CPU::ISC__RUNTIME, CPU::RT_ADD_SLET__EXT4);
-    }
-
-    if (slba == 0xba15) {
-      ISC::Runtime::destory();
-    }
-
     warn("nvme_namespace: host tried to read 0 blocks");
   }
 

@@ -18,8 +18,14 @@
  */
 
 #include "hil/hil.hh"
+#include "hil/nvme/namespace.hh"
 
 #include "util/algorithm.hh"
+
+#include "isc/sims/ftl.hh"
+
+#include "isc/fs/ext4/ext4.hh"
+#include "isc/runtime.hh"
 
 namespace SimpleSSD {
 
@@ -27,6 +33,7 @@ namespace HIL {
 
 HIL::HIL(ConfigReader &c) : conf(c), reqCount(0), lastScheduled(0) {
   pICL = new ICL::ICL(conf);
+  ISC::SIM::FTL::setCache(pICL);
 
   memset(&stat, 0, sizeof(stat));
 
@@ -70,9 +77,10 @@ void HIL::read(Request &req) {
 }
 
 void HIL::isc(Request &hReq) {
-  DMAFunction doISC = [this](uint64_t beginAt, void *context) {
-    auto hReq = (Request *)context;
-    uint64_t tick = beginAt;
+  DMAFunction doISC = [this](uint64_t tick, void *ctx) {
+    const auto beginAt = tick;
+    const auto hReq = (Request *)ctx;
+    const auto ioCtx = (NVMe::IOContext *)hReq->context;
 
     hReq->reqID = ++reqCount;
 
@@ -82,11 +90,21 @@ void HIL::isc(Request &hReq) {
                hReq->reqID, hReq->range.slpn, hReq->range.nlp, hReq->offset,
                hReq->length);
 
-    ICL::Request cReq(*hReq);
-    pICL->read(cReq, tick);
+    if (ioCtx->slba == 0x51ab) {
+      if (ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Ext4>(tick, ctx))
+        panic("Failed to setup predefined slets");
+      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
+    }
+    else if (ioCtx->slba == 0xba15) {
+      ISC::Runtime::destory();
+    }
+    else {
+      ICL::Request cReq(*hReq);
+      pICL->read(cReq, tick);
+    }
 
     stat.request[0]++;
-    stat.iosize[0] += cReq.length;
+    stat.iosize[0] += hReq->length;
     updateBusyTime(0, beginAt, tick);
     updateBusyTime(2, beginAt, tick);
 
@@ -94,10 +112,7 @@ void HIL::isc(Request &hReq) {
     completionQueue.push(*hReq);
 
     updateCompletion();
-
-    delete hReq;
   };
-
   execute(CPU::HIL, CPU::ISC, doISC, new Request(hReq));
 }
 
