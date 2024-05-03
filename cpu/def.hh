@@ -123,8 +123,15 @@ typedef enum : uint16_t {
   // FS funcs
   ISC__INIT,
   ISC__GET_SUPER,
+  ISC__GET_GROUP,
+  ISC__GET_IMAP,
   ISC__GET_INODE,
+  ISC__GET_INODE_PARENT,
+  ISC__GET_EXTENT_SIZE,
+  ISC__GET_EXTENT_INTERNAL,
   ISC__GET_EXTENT,
+  ISC__DIR_SEARCH_FILE,
+  ISC__NAMEI,
 } FUNCTION;
 
 }  // namespace CPU

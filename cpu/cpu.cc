@@ -314,24 +314,51 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
       {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {41, InstStat(35, 180, 39, 76, 0, 2, clockPeriod)});
-  cpi.find(13)->second.insert({42, InstStat(8, 32, 9, 23, 0, 0, clockPeriod)});
+      {41, InstStat(52, 248, 43, 98, 0, 4, clockPeriod)});
+  cpi.find(13)->second.insert({42, InstStat(8, 32, 9, 27, 0, 0, clockPeriod)});
   cpi.find(16)->second.insert(
-      {43, InstStat(23, 116, 36, 174, 0, 1, clockPeriod)});
+      {43, InstStat(23, 124, 39, 179, 0, 2, clockPeriod)});
   cpi.find(16)->second.insert({44, InstStat(10, 20, 6, 23, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert({45, InstStat(7, 20, 7, 24, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert({46, InstStat(14, 44, 8, 54, 0, 1, clockPeriod)});
+  cpi.find(16)->second.insert({47, InstStat(18, 60, 9, 59, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {48, InstStat(17, 84, 16, 51, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {49, InstStat(24, 84, 17, 64, 0, 2, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {50, InstStat(25, 112, 29, 76, 0, 1, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {51, InstStat(31, 92, 20, 73, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {52, InstStat(38, 104, 22, 105, 0, 2, clockPeriod)});
+  cpi.find(16)->second.insert(
+      {53, InstStat(22, 52, 13, 60, 0, 2, clockPeriod)});
 
-  static_assert(FUNCTION::ISC == 41, "Unexpected FUNCTION ID");
-  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 42, "Unexpected FUNCTION ID");
-  static_assert(FUNCTION::ISC__INIT == 43, "Unexpected FUNCTION ID");
-  static_assert(FUNCTION::ISC__GET_SUPER == 44, "Unexpected FUNCTION ID");
+#define ERR_MSG "Unexpected FUNCTION ID"
+  static_assert(FUNCTION::ISC == 41, ERR_MSG);
+  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 42, ERR_MSG);
+  static_assert(FUNCTION::ISC__INIT == 43, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_SUPER == 44, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_GROUP == 45, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_IMAP == 46, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_INODE == 47, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_INODE_PARENT == 48, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT_SIZE == 49, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT_INTERNAL == 50, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT == 51, ERR_MSG);
+  static_assert(FUNCTION::ISC__DIR_SEARCH_FILE == 52, ERR_MSG);
+  static_assert(FUNCTION::ISC__NAMEI == 53, ERR_MSG);
+#undef ERR_MSG
+#define ERR_MSG "Unexpected NAMESPACE ID"
+  static_assert(NAMESPACE::HIL == 4, ERR_MSG);
+  static_assert(NAMESPACE::NVME__SUBSYSTEM == 8, ERR_MSG);
+  static_assert(NAMESPACE::NVME__NAMESPACE == 9, ERR_MSG);
+  static_assert(NAMESPACE::ISC__RUNTIME == 13, ERR_MSG);
+  static_assert(NAMESPACE::ISC__SLET == 14, ERR_MSG);
+  static_assert(NAMESPACE::ISC__FSA == 15, ERR_MSG);
+  static_assert(NAMESPACE::ISC__FSA__EXT4 == 16, ERR_MSG);
 
-  static_assert(NAMESPACE::HIL == 4, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::NVME__SUBSYSTEM == 8, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::NVME__NAMESPACE == 9, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::ISC__RUNTIME == 13, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::ISC__SLET == 14, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::ISC__FSA == 15, "Unexpected NAMESPACE ID");
-  static_assert(NAMESPACE::ISC__FSA__EXT4 == 16, "Unexpected NAMESPACE ID");
   assert(cpi.size() == NAMESPACE::TOTAL_NAMESPACES || !"Some CPIs are missing");
 }
 
