@@ -25,10 +25,99 @@
 
 // isc configs
 #include "isc/configs.hh"
+#include "isc/utils/debug.hh"
 
 namespace SimpleSSD {
 
 namespace CPU {
+
+#define enum2str(x) #x
+#define SAME_STR(literal, s) (!const_strncmp(literal, s, sizeof(literal) - 1))
+#define CHECK_ENUM_STRS(e, s) static_assert(SAME_STR(#e, s), "MISALIGNED")
+
+#define CHECK_NS2STR(e) CHECK_ENUM_STRS(e, NS2STR[e])
+#define CHECK_FCT2STR(e) CHECK_ENUM_STRS(e, FCT2STR[e])
+
+constexpr const char *NS2STR[] = {
+    enum2str(FTL),
+    enum2str(FTL__PAGE_MAPPING),
+    enum2str(ICL),
+    enum2str(ICL__GENERIC_CACHE),
+    enum2str(HIL),
+    enum2str(NVME__CONTROLLER),
+    enum2str(NVME__PRPLIST),
+    enum2str(NVME__SGL),
+    enum2str(NVME__SUBSYSTEM),
+    enum2str(NVME__NAMESPACE),
+    enum2str(NVME__OCSSD),
+    enum2str(UFS__DEVICE),
+    enum2str(SATA__DEVICE),
+    enum2str(ISC__RUNTIME),
+    enum2str(ISC__SLET),
+    enum2str(ISC__FSA),
+    enum2str(ISC__FSA__EXT4),
+    enum2str(TOTAL_NAMESPACES),
+};
+
+constexpr const char *FCT2STR[] = {
+    enum2str(READ),
+    enum2str(WRITE),
+    enum2str(FLUSH),
+    enum2str(TRIM),
+    enum2str(FORMAT),
+    enum2str(READ_INTERNAL),
+    enum2str(WRITE_INTERNAL),
+    enum2str(ERASE_INTERNAL),
+    enum2str(TRIM_INTERNAL),
+    enum2str(SELECT_VICTIM_BLOCK),
+    enum2str(DO_GARBAGE_COLLECTION),
+    enum2str(CREATE_CQ),
+    enum2str(CREATE_SQ),
+    enum2str(COLLECT_SQ),
+    enum2str(HANDLE_REQUEST),
+    enum2str(WORK),
+    enum2str(COMPLETION),
+    enum2str(GET_PRPLIST_FROM_PRP),
+    enum2str(PARSE_SGL_SEGMENT),
+    enum2str(SUBMIT_COMMAND),
+    enum2str(CONVERT_UNIT),
+    enum2str(FORMAT_NVM),
+    enum2str(DATASET_MANAGEMENT),
+    enum2str(VECTOR_CHUNK_READ),
+    enum2str(VECTOR_CHUNK_WRITE),
+    enum2str(VECTOR_CHUNK_RESET),
+    enum2str(PHYSICAL_PAGE_READ),
+    enum2str(PHYSICAL_PAGE_WRITE),
+    enum2str(PHYSICAL_BLOCK_ERASE),
+    enum2str(PROCESS_QUERY_COMMAND),
+    enum2str(PROCESS_COMMAND),
+    enum2str(PRDT_READ),
+    enum2str(PRDT_WRITE),
+    enum2str(READ_DMA),
+    enum2str(READ_NCQ),
+    enum2str(READ_DMA_SETUP),
+    enum2str(READ_DMA_DONE),
+    enum2str(WRITE_DMA),
+    enum2str(WRITE_NCQ),
+    enum2str(WRITE_DMA_SETUP),
+    enum2str(WRITE_DMA_DONE),
+    enum2str(ISC),
+    enum2str(ISC__ADD_SLET__EXT4),
+    enum2str(ISC__INIT),
+    enum2str(ISC__GET_SUPER),
+    enum2str(ISC__GET_GROUP),
+    enum2str(ISC__GET_IMAP),
+    enum2str(ISC__GET_INODE),
+    enum2str(ISC__GET_INODE_PARENT),
+    enum2str(ISC__GET_EXTENT_SIZE),
+    enum2str(ISC__GET_EXTENT_INTERNAL),
+    enum2str(ISC__GET_EXTENT),
+    enum2str(ISC__DIR_SEARCH_FILE),
+    enum2str(ISC__NAMEI),
+};
+
+CHECK_NS2STR(TOTAL_NAMESPACES);
+CHECK_FCT2STR(ISC__NAMEI);
 
 InstStat::_InstStat()
     : branch(0),
@@ -769,6 +858,7 @@ void CPU::execute(NAMESPACE ns, FUNCTION fct, DMAFunction &func, void *context,
       panic("Namespace %u does not have function %u", ns, fct);
     }
 
+    debugprint(LOG_CPU, "EXEC: %s::%s (+%lu)", NS2STR[ns], FCT2STR[fct], delay);
     pCore->submitJob(JobEntry(func, context, &inst->second), delay);
   }
   else {
