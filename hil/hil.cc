@@ -27,6 +27,10 @@
 #include "isc/fs/ext4/ext4.hh"
 #include "isc/runtime.hh"
 
+#include "isc/slet/grep.hh"
+
+using SimpleSSD::ISC::byte;
+
 namespace SimpleSSD {
 
 namespace HIL {
@@ -76,6 +80,7 @@ void HIL::read(Request &req) {
   execute(CPU::HIL, CPU::READ, doRead, new Request(req));
 }
 
+#define PR_SECTION LOG_HIL
 void HIL::isc(Request &hReq) {
   DMAFunction doISC = [this](uint64_t tick, void *ctx) {
     const auto beginAt = tick;
@@ -84,19 +89,47 @@ void HIL::isc(Request &hReq) {
 
     hReq->reqID = ++reqCount;
 
-    debugprint(LOG_HIL,
-               "ISC  | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
-               " + %" PRIu64,
-               hReq->reqID, hReq->range.slpn, hReq->range.nlp, hReq->offset,
-               hReq->length);
+    pr("ISC  | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
+       " + %" PRIu64,
+       hReq->reqID, hReq->range.slpn, hReq->range.nlp, hReq->offset,
+       hReq->length);
 
-    if (ioCtx->slba == 0x51ab) {
-      if (ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Ext4>(tick, ctx))
-        panic("Failed to setup predefined slets");
-      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
+    if (ioCtx->slba == 0x51abba150000) {
+      if (ioCtx->nlb == 0x1) {
+        pr("Runtime Initialization -----------------------------------------");
+        ISC::ISC_STS_SLET_ID id;
+
+        id = ISC::Runtime::addSlet<ISC::Ext4>(tick, ctx);
+        if (ISC_STS_FAIL == id)
+          panic("Failed to setup predefined slets");
+
+        id = ISC::Runtime::addSlet<ISC::GrepAPP>(tick, ctx);
+        if (ISC_STS_FAIL == id)
+          panic("Failed to setup predefined slets");
+
+        tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
+        pr("Initialization done    -----------------------------------------");
+
+        // resize nlb to prevent large latency
+        printf("adjust nlb to %lu [%p]\n", ioCtx->nlb, &ioCtx->nlb);
+      }
+      else {
+        ISC::Runtime::destory();
+      }
     }
-    else if (ioCtx->slba == 0xba15) {
-      ISC::Runtime::destory();
+    else if (ioCtx->slba == 0x51ab51ab0000) {
+      pr("Runtime startSlet      -----------------------------------------");
+      auto pat = "yooo";
+      auto sz = strlen(pat);
+
+      auto res =
+          ISC::Runtime::startSlet(ioCtx->nlb, (byte *)pat, sz, tick, ctx);
+      if (ISC_STS_FAIL == res) {
+        debugprint(LOG_HIL, "failed to start slet: %d", ioCtx->nlb);
+      }
+
+      pr("startSlet done         -----------------------------------------");
+      // FIXME: add start slet latency
     }
     else {
       ICL::Request cReq(*hReq);

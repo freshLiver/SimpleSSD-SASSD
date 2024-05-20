@@ -112,6 +112,7 @@ set(SRC_ISC_UTILS
 )
 set(SRC_ISC_SLET
   isc/slet/slet.cc
+  isc/slet/grep.cc
 )
 set(SRC_ISC_FSA
   isc/fs/fsa.cc
