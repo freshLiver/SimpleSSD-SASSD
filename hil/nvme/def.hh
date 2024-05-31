@@ -177,7 +177,8 @@ typedef enum {
   OPCODE_VECTOR_CHUNK_COPY,
 
   // Vendor for ISC
-  OPCODE_ISC = 0xC1,
+  OPCODE_ISC_SET = 0xC1,
+  OPCODE_ISC_GET = 0xC2,
 } NVM_OPCODE;
 
 typedef enum {

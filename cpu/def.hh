@@ -118,7 +118,8 @@ typedef enum : uint16_t {
   WRITE_DMA_SETUP,
   WRITE_DMA_DONE,
 
-  ISC,
+  ISC__GET,
+  ISC__SET,
   ISC__ADD_SLET__EXT4,
   // FS funcs
   ISC__INIT,

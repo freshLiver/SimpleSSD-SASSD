@@ -101,7 +101,8 @@ constexpr const char *FCT2STR[] = {
     enum2str(WRITE_NCQ),
     enum2str(WRITE_DMA_SETUP),
     enum2str(WRITE_DMA_DONE),
-    enum2str(ISC),
+    enum2str(ISC_GET),
+    enum2str(ISC_SET),
     enum2str(ISC__ADD_SLET__EXT4),
     enum2str(ISC__INIT),
     enum2str(ISC__GET_SUPER),
@@ -403,41 +404,47 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
       {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {41, InstStat(52, 248, 43, 98, 0, 4, clockPeriod)});
-  cpi.find(13)->second.insert({42, InstStat(8, 32, 9, 27, 0, 0, clockPeriod)});
+      {41, InstStat(28, 136, 34, 57, 0, 1, clockPeriod)});
+  cpi.find(9)->second.insert(
+      {42, InstStat(89, 368, 56, 136, 0, 0, clockPeriod)});
+  cpi.find(8)->second.insert({42, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
+  cpi.find(4)->second.insert(
+      {42, InstStat(51, 180, 40, 103, 0, 2, clockPeriod)});
+  cpi.find(13)->second.insert({43, InstStat(8, 32, 9, 27, 0, 0, clockPeriod)});
   cpi.find(16)->second.insert(
-      {43, InstStat(23, 124, 39, 179, 0, 2, clockPeriod)});
-  cpi.find(16)->second.insert({44, InstStat(10, 20, 6, 23, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert({45, InstStat(7, 20, 7, 24, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert({46, InstStat(14, 44, 8, 54, 0, 1, clockPeriod)});
-  cpi.find(16)->second.insert({47, InstStat(18, 60, 9, 59, 0, 0, clockPeriod)});
+      {44, InstStat(30, 124, 39, 205, 0, 3, clockPeriod)});
+  cpi.find(16)->second.insert({45, InstStat(11, 20, 6, 30, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert({46, InstStat(8, 20, 7, 31, 0, 0, clockPeriod)});
+  cpi.find(16)->second.insert({47, InstStat(15, 44, 8, 61, 0, 1, clockPeriod)});
+  cpi.find(16)->second.insert({48, InstStat(19, 60, 9, 66, 0, 0, clockPeriod)});
   cpi.find(16)->second.insert(
-      {48, InstStat(17, 84, 16, 51, 0, 0, clockPeriod)});
+      {49, InstStat(18, 84, 16, 58, 0, 0, clockPeriod)});
   cpi.find(16)->second.insert(
-      {49, InstStat(24, 84, 17, 64, 0, 2, clockPeriod)});
+      {50, InstStat(25, 84, 17, 71, 0, 2, clockPeriod)});
   cpi.find(16)->second.insert(
-      {50, InstStat(25, 112, 29, 76, 0, 1, clockPeriod)});
+      {51, InstStat(26, 112, 29, 83, 0, 1, clockPeriod)});
   cpi.find(16)->second.insert(
-      {51, InstStat(31, 92, 20, 73, 0, 0, clockPeriod)});
+      {52, InstStat(32, 92, 20, 80, 0, 0, clockPeriod)});
   cpi.find(16)->second.insert(
-      {52, InstStat(38, 104, 22, 105, 0, 2, clockPeriod)});
+      {53, InstStat(39, 104, 22, 112, 0, 2, clockPeriod)});
   cpi.find(16)->second.insert(
-      {53, InstStat(22, 52, 13, 60, 0, 2, clockPeriod)});
+      {54, InstStat(23, 52, 13, 67, 0, 2, clockPeriod)});
 
 #define ERR_MSG "Unexpected FUNCTION ID"
-  static_assert(FUNCTION::ISC == 41, ERR_MSG);
-  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 42, ERR_MSG);
-  static_assert(FUNCTION::ISC__INIT == 43, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_SUPER == 44, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_GROUP == 45, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_IMAP == 46, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_INODE == 47, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_INODE_PARENT == 48, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_EXTENT_SIZE == 49, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_EXTENT_INTERNAL == 50, ERR_MSG);
-  static_assert(FUNCTION::ISC__GET_EXTENT == 51, ERR_MSG);
-  static_assert(FUNCTION::ISC__DIR_SEARCH_FILE == 52, ERR_MSG);
-  static_assert(FUNCTION::ISC__NAMEI == 53, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET == 41, ERR_MSG);
+  static_assert(FUNCTION::ISC__SET == 42, ERR_MSG);
+  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 43, ERR_MSG);
+  static_assert(FUNCTION::ISC__INIT == 44, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_SUPER == 45, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_GROUP == 46, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_IMAP == 47, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_INODE == 48, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_INODE_PARENT == 49, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT_SIZE == 50, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT_INTERNAL == 51, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_EXTENT == 52, ERR_MSG);
+  static_assert(FUNCTION::ISC__DIR_SEARCH_FILE == 53, ERR_MSG);
+  static_assert(FUNCTION::ISC__NAMEI == 54, ERR_MSG);
 #undef ERR_MSG
 #define ERR_MSG "Unexpected NAMESPACE ID"
   static_assert(NAMESPACE::HIL == 4, ERR_MSG);

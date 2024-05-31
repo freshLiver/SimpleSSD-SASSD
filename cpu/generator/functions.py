@@ -160,39 +160,43 @@ function = [
 
 # add here for change the += to = for testing to avoid comment all the other functions
 #
-# NAMESPACE::ISC__RUNTIME == 13
-# NAMESPACE::ISC__SLET == 14
-# NAMESPACE::ISC__FSA == 15
-# NAMESPACE::ISC__FSA__EXT4 == 16
+ISC__RUNTIME = 13
+ISC__SLET = 14
+ISC__FSA = 15
+ISC__FSA__EXT4 = 16
 #
-# FUNCTION::ISC == 41
-# FUNCTION::ISC__ADD_SLET__EXT4 == 42
-# FUNCTION::ISC__INIT == 43
-# FUNCTION::ISC__GET_SUPER == 44
-# FUNCTION::ISC__GET_GROUP == 45
-# FUNCTION::ISC__GET_IMAP == 46
-# FUNCTION::ISC__GET_INODE == 47
-# FUNCTION::ISC__GET_INODE_PARENT == 48
-# FUNCTION::ISC__GET_EXTENT_SIZE == 49
-# FUNCTION::ISC__GET_EXTENT_INTERNAL == 50
-# FUNCTION::ISC__GET_EXTENT == 51
-# FUNCTION::ISC__DIR_SEARCH_FILE == 52
-# FUNCTION::ISC__NAMEI == 53
-#
+ISC_GET = 41
+ISC_SET = 42
+ISC__ADD_SLET__EXT4 = 43
+ISC__INIT = 44
+ISC__GET_SUPER = 45
+ISC__GET_GROUP = 46
+ISC__GET_IMAP = 47
+ISC__GET_INODE = 48
+ISC__GET_INODE_PARENT = 49
+ISC__GET_EXTENT_SIZE = 50
+ISC__GET_EXTENT_INTERNAL = 51
+ISC__GET_EXTENT = 52
+ISC__DIR_SEARCH_FILE = 53
+ISC__NAMEI = 54
+
 function = [
-    ["hil/nvme/namespace.cc", "Namespace::isc", 9, 41],
-    ["hil/nvme/subsystem.cc", "Subsystem::isc", 8, 41],
-    ["hil/hil.cc", "HIL::isc", 4, 41],
-    ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>", 13, 42],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::Ext4", 16, 43],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getSuper", 16, 44],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getGrpDesc", 16, 45],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInoMap", 16, 46],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInode", 16, 47],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getParentInode", 16, 48],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::calcExtentSize", 16, 49],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::extractExtents", 16, 50],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getExtent", 16, 51],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::dirSearchFile", 16, 52],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::namei", 16, 53],
+    ["hil/nvme/namespace.cc", "Namespace::isc_get", 9, ISC_GET],
+    ["hil/nvme/subsystem.cc", "Subsystem::isc_get", 8, ISC_GET],
+    ["hil/hil.cc", "HIL::isc_get", 4, ISC_GET],
+    ["hil/nvme/namespace.cc", "Namespace::isc_set", 9, ISC_SET],
+    ["hil/nvme/subsystem.cc", "Subsystem::isc_set", 8, ISC_SET],
+    ["hil/hil.cc", "HIL::isc_set", 4, ISC_SET],
+    ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>", 13, ISC__ADD_SLET__EXT4],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::Ext4", 16, ISC__INIT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getSuper", 16, ISC__GET_SUPER],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getGrpDesc", 16, ISC__GET_GROUP],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInoMap", 16, ISC__GET_IMAP],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInode", 16, ISC__GET_INODE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getParentInode", 16, ISC__GET_INODE_PARENT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::calcExtentSize", 16, ISC__GET_EXTENT_SIZE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::extractExtents", 16, ISC__GET_EXTENT_INTERNAL],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getExtent", 16, ISC__GET_EXTENT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::dirSearchFile", 16, ISC__DIR_SEARCH_FILE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::namei", 16, ISC__NAMEI],
 ]

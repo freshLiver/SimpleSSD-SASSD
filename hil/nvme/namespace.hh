@@ -117,7 +117,8 @@ class Namespace {
   void flush(SQEntryWrapper &, RequestFunction &);
   void write(SQEntryWrapper &, RequestFunction &);
   void read(SQEntryWrapper &, RequestFunction &);
-  void isc(SQEntryWrapper &, RequestFunction &);
+  void isc_set(SQEntryWrapper &, RequestFunction &);
+  void isc_get(SQEntryWrapper &, RequestFunction &);
   void compare(SQEntryWrapper &, RequestFunction &);
   void datasetManagement(SQEntryWrapper &, RequestFunction &);
 

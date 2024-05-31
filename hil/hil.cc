@@ -29,6 +29,22 @@
 
 #include "isc/slet/grep.hh"
 
+#define ISC_SUBCMD_MASK 0xFFFF00000000
+#define ISC_SUBCMD(slba) (ISC_SUBCMD_MASK & (slba))
+#define ISC_SUBCMD_IS(slba, cmd) ((ISC_SUBCMD((slba)) >> 32) == (cmd))
+
+#define ISC_SUBCMD_INIT 0x0000
+#define ISC_SUBCMD_FREE 0x0FFF
+#define ISC_SUBCMD_SLET_OPT 0x0001
+#define ISC_SUBCMD_SLET_RUN 0x1000
+#define ISC_SUBCMD_SLET_FREE 0x000F
+
+#define ISC_SUBCMD_OPT_MASK 0x0000FFFFFFFF
+#define ISC_SUBCMD_OPT(slba) (ISC_SUBCMD_OPT_MASK & (slba))
+
+#define ISC_KEY_LEN (64)
+#define ISC_VAL_LEN(dlen) ((dlen)-ISC_KEY_LEN)
+
 using SimpleSSD::ISC::byte;
 
 namespace SimpleSSD {
@@ -81,59 +97,98 @@ void HIL::read(Request &req) {
 }
 
 #define PR_SECTION LOG_HIL
-void HIL::isc(Request &hReq) {
-  DMAFunction doISC = [this](uint64_t tick, void *ctx) {
-    const auto beginAt = tick;
+
+void HIL::isc_set(Request &req) {
+  DMAFunction doSet = [this](uint64_t beginAt, void *ctx) {
+    uint64_t tick = beginAt;
     const auto hReq = (Request *)ctx;
-    const auto ioCtx = (NVMe::IOContext *)hReq->context;
+    const auto slba = ((NVMe::IOContext *)hReq->context)->slba;
 
     hReq->reqID = ++reqCount;
-
-    pr("ISC  | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
+    pr("ISC-SET | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
        " + %" PRIu64,
        hReq->reqID, hReq->range.slpn, hReq->range.nlp, hReq->offset,
        hReq->length);
 
-    if (ioCtx->slba == 0x51abba150000) {
-      if (ioCtx->nlb == 0x1) {
-        pr("Runtime Initialization -----------------------------------------");
-        ISC::ISC_STS_SLET_ID id;
+    if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_INIT)) {
+      pr("Runtime Initialization -----------------------------------------");
+      ISC::ISC_STS_SLET_ID id;
 
-        id = ISC::Runtime::addSlet<ISC::Ext4>(tick, ctx);
-        if (ISC_STS_FAIL == id)
-          panic("Failed to setup predefined slets");
+      id = ISC::Runtime::addSlet<ISC::Ext4>(tick, ctx);
+      if (ISC_STS_FAIL == id)
+        panic("Failed to setup predefined slets");
 
-        id = ISC::Runtime::addSlet<ISC::GrepAPP>(tick, ctx);
-        if (ISC_STS_FAIL == id)
-          panic("Failed to setup predefined slets");
+      id = ISC::Runtime::addSlet<ISC::GrepAPP>(tick, ctx);
+      if (ISC_STS_FAIL == id)
+        panic("Failed to setup predefined slets");
 
-        tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
-        pr("Initialization done    -----------------------------------------");
-
-        // resize nlb to prevent large latency
-        printf("adjust nlb to %lu [%p]\n", ioCtx->nlb, &ioCtx->nlb);
-      }
-      else {
-        ISC::Runtime::destory();
-      }
+      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
+      // TODO:tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__GREP);
+      pr("Initialization done    -----------------------------------------");
     }
-    else if (ioCtx->slba == 0x51ab51ab0000) {
-      pr("Runtime startSlet      -----------------------------------------");
-      auto pat = "yooo";
-      auto sz = strlen(pat);
+    else if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_FREE)) {
+      ISC::Runtime::destory();
+    }
+    else if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_SLET_OPT)) {
+      auto id = ISC_SUBCMD_OPT(slba);
+      auto data = ((NVMe::IOContext *)hReq->context)->buffer;
 
-      auto res =
-          ISC::Runtime::startSlet(ioCtx->nlb, (byte *)pat, sz, tick, ctx);
+      // fixme: handle calloc fails
+      char *key = (char *)calloc(1, ISC_KEY_LEN);
+      memcpy(key, data, ISC_KEY_LEN);
+
+      byte *val = (byte *)calloc(1, ISC_VAL_LEN(hReq->length));
+      memcpy(key, data + ISC_KEY_LEN, ISC_VAL_LEN(hReq->length));
+
+      ISC::Runtime::setOpt(id, key, val);
+      // TODO: tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__SET_OPT);
+    }
+    else {
+      panic("Unexpected ISC-SET CMD: 0x%x", ISC_SUBCMD(slba));
+    }
+
+    // ICL::Request reqInternal(*hReq);
+
+    stat.request[1]++;
+    stat.iosize[1] += hReq->length;
+    updateBusyTime(1, beginAt, tick);
+    updateBusyTime(2, beginAt, tick);
+
+    hReq->finishedAt = tick;
+    completionQueue.push(*hReq);
+    updateCompletion();
+
+    delete hReq;
+  };
+  execute(CPU::HIL, CPU::ISC__SET, doSet, new Request(req));
+}
+
+void HIL::isc_get(Request &hReq) {
+  DMAFunction doISC = [this](uint64_t tick, void *ctx) {
+    const auto beginAt = tick;
+    const auto hReq = (Request *)ctx;
+    const auto slba = ((NVMe::IOContext *)hReq->context)->slba;
+
+    hReq->reqID = ++reqCount;
+
+    pr("ISC-GET  | REQ %7u | LCA %" PRIu64 " + %" PRIu64 " | BYTE %" PRIu64
+       " + %" PRIu64,
+       hReq->reqID, hReq->range.slpn, hReq->range.nlp, hReq->offset,
+       hReq->length);
+
+    if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_SLET_RUN)) {
+      pr("Runtime startSlet      -----------------------------------------");
+      auto id = ISC_SUBCMD_OPT(slba);
+      auto res = ISC::Runtime::startSlet(id, nullptr, 0, tick, ctx);
       if (ISC_STS_FAIL == res) {
-        debugprint(LOG_HIL, "failed to start slet: %d", ioCtx->nlb);
+        pr("failed to start slet: %d", id);
       }
 
       pr("startSlet done         -----------------------------------------");
       // FIXME: add start slet latency
     }
     else {
-      ICL::Request cReq(*hReq);
-      pICL->read(cReq, tick);
+      panic("Unexpected ISC-GET SUBCMD: 0x%x", ISC_SUBCMD(slba));
     }
 
     stat.request[0]++;
@@ -146,7 +201,7 @@ void HIL::isc(Request &hReq) {
 
     updateCompletion();
   };
-  execute(CPU::HIL, CPU::ISC, doISC, new Request(hReq));
+  execute(CPU::HIL, CPU::ISC__GET, doISC, new Request(hReq));
 }
 
 void HIL::write(Request &req) {
