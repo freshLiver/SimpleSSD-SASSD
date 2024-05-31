@@ -498,7 +498,7 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
   std::vector<PAL::Request> eraseRequests;
   std::vector<uint64_t> lpns;
   Bitset bit(param.ioUnitInPage);
-  uint64_t beginAt;
+  uint64_t beginAt = 0;
   uint64_t readFinishedAt = tick;
   uint64_t writeFinishedAt = tick;
   uint64_t eraseFinishedAt = tick;
