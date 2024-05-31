@@ -140,7 +140,9 @@ void Namespace::setData(uint32_t id, Information *data) {
     }
     else if (diskSize != info.size * info.lbaSize) {
       if (conf.readBoolean(CONFIG_NVME, NVME_STRICT_DISK_SIZE)) {
-        panic("Disk size not match");
+        auto expect = info.size * info.lbaSize / (1 << 20);
+        auto got = diskSize / (1 << 20);
+        panic("Disk size not match (expect %lu MiB, but %lu)", expect, got);
       }
     }
 
