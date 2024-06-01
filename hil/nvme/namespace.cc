@@ -463,7 +463,7 @@ void Namespace::read(SQEntryWrapper &req, RequestFunction &func) {
     pContext->nlb = nlb;
 
     CPUContext *pCPU =
-        new CPUContext(doRead, pContext, CPU::NVME__NAMESPACE, CPU::ISC);
+        new CPUContext(doRead, pContext, CPU::NVME__NAMESPACE, CPU::READ);
 
     if (req.useSGL) {
       pContext->dma =
