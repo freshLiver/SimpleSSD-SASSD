@@ -138,7 +138,7 @@ void HIL::isc_set(Request &req) {
       memcpy(key, data, ISC_KEY_LEN);
 
       byte *val = (byte *)calloc(1, ISC_VAL_LEN(hReq->length));
-      memcpy(key, data + ISC_KEY_LEN, ISC_VAL_LEN(hReq->length));
+      memcpy(val, data + ISC_KEY_LEN, ISC_VAL_LEN(hReq->length));
 
       ISC::Runtime::setOpt(id, key, val);
       // TODO: tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__SET_OPT);
