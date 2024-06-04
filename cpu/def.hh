@@ -120,7 +120,7 @@ typedef enum : uint16_t {
 
   ISC__GET,
   ISC__SET,
-  ISC__ADD_SLET__EXT4,
+
   // FS funcs
   ISC__INIT,
   ISC__GET_SUPER,
@@ -133,6 +133,13 @@ typedef enum : uint16_t {
   ISC__GET_EXTENT,
   ISC__DIR_SEARCH_FILE,
   ISC__NAMEI,
+
+  // runtime funcs (each FSA/APP should have ADD_SLET)
+  ISC__START_SLET,
+  ISC__ADD_SLET__EXT4,
+  ISC__ADD_SLET__GREP,
+
+  TOTAL_FUNCTIONS,
 } FUNCTION;
 
 }  // namespace CPU

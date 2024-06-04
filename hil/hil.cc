@@ -123,7 +123,7 @@ void HIL::isc_set(Request &req) {
         panic("Failed to setup predefined slets");
 
       tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
-      // TODO:tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__GREP);
+      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__GREP);
       pr("Initialization done    -----------------------------------------");
     }
     else if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_FREE)) {
@@ -185,7 +185,7 @@ void HIL::isc_get(Request &hReq) {
       }
 
       pr("startSlet done         -----------------------------------------");
-      // FIXME: add start slet latency
+      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__START_SLET);
     }
     else {
       panic("Unexpected ISC-GET SUBCMD: 0x%x", ISC_SUBCMD(slba));
