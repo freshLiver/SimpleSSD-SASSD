@@ -27,23 +27,8 @@
 #include "isc/fs/ext4/ext4.hh"
 #include "isc/runtime.hh"
 
+#include "isc/sims/configs.hh"
 #include "isc/slet/grep.hh"
-
-#define ISC_SUBCMD_MASK 0xFFFF00000000
-#define ISC_SUBCMD(slba) (ISC_SUBCMD_MASK & (slba))
-#define ISC_SUBCMD_IS(slba, cmd) ((ISC_SUBCMD((slba)) >> 32) == (cmd))
-
-#define ISC_SUBCMD_INIT 0x0000
-#define ISC_SUBCMD_FREE 0x0FFF
-#define ISC_SUBCMD_SLET_OPT 0x0001
-#define ISC_SUBCMD_SLET_RUN 0x1000
-#define ISC_SUBCMD_SLET_FREE 0x000F
-
-#define ISC_SUBCMD_OPT_MASK 0x0000FFFFFFFF
-#define ISC_SUBCMD_OPT(slba) (ISC_SUBCMD_OPT_MASK & (slba))
-
-#define ISC_KEY_LEN (64)
-#define ISC_VAL_LEN(dlen) ((dlen)-ISC_KEY_LEN)
 
 using SimpleSSD::ISC::byte;
 
@@ -140,8 +125,7 @@ void HIL::isc_set(Request &req) {
       byte *val = (byte *)calloc(1, ISC_VAL_LEN(hReq->length));
       memcpy(val, data + ISC_KEY_LEN, ISC_VAL_LEN(hReq->length));
 
-      ISC::Runtime::setOpt(id, key, val);
-      // TODO: tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__SET_OPT);
+      ISC::Runtime::setOpt(id, key, val, tick, ctx);
     }
     else {
       panic("Unexpected ISC-SET CMD: 0x%x", ISC_SUBCMD(slba));
@@ -179,7 +163,7 @@ void HIL::isc_get(Request &hReq) {
     if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_SLET_RUN)) {
       pr("Runtime startSlet      -----------------------------------------");
       auto id = ISC_SUBCMD_OPT(slba);
-      auto res = ISC::Runtime::startSlet(id, nullptr, 0, tick, ctx);
+      auto res = ISC::Runtime::startSlet(id, tick, ctx);
       if (ISC_STS_FAIL == res) {
         pr("failed to start slet: %d", id);
       }

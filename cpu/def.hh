@@ -45,9 +45,10 @@ typedef enum : uint16_t {
 
   // ISC NAMESPACES
   ISC__RUNTIME,
-  ISC__SLET,
   ISC__FSA,
   ISC__FSA__EXT4,
+  ISC__SLET,
+  ISC__SLET__GREP,
 
   TOTAL_NAMESPACES
 } NAMESPACE;
@@ -136,6 +137,8 @@ typedef enum : uint16_t {
 
   // runtime funcs (each FSA/APP should have ADD_SLET)
   ISC__START_SLET,
+  ISC__SET_OPT,
+  ISC__GET_OPT,
   ISC__ADD_SLET__EXT4,
   ISC__ADD_SLET__GREP,
 

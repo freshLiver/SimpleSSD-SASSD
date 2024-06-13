@@ -24,7 +24,7 @@
 #include "sim/trace.hh"
 
 // isc configs
-#include "isc/configs.hh"
+#include "isc/sims/configs.hh"
 #include "isc/utils/debug.hh"
 
 namespace SimpleSSD {
@@ -58,9 +58,10 @@ constexpr const char *NS2STR[] = {
     enum2str(UFS__DEVICE),
     enum2str(SATA__DEVICE),
     enum2str(ISC__RUNTIME),
-    enum2str(ISC__SLET),
     enum2str(ISC__FSA),
     enum2str(ISC__FSA__EXT4),
+    enum2str(ISC__SLET),
+    enum2str(ISC__SLET__GREP),
     enum2str(TOTAL_NAMESPACES),
 };
 
@@ -120,14 +121,17 @@ constexpr const char *FCT2STR[] = {
     enum2str(ISC__DIR_SEARCH_FILE),
     enum2str(ISC__NAMEI),
     enum2str(ISC__START_SLET),
+    enum2str(ISC__SET_OPT),
+    enum2str(ISC__GET_OPT),
     enum2str(ISC__ADD_SLET__EXT4),
     enum2str(ISC__ADD_SLET__GREP),
     enum2str(TOTAL_FUNCTIONS),
 };
 
 CHECK_NS2STR(ISC__RUNTIME);
-CHECK_NS2STR(ISC__SLET);
 CHECK_NS2STR(ISC__FSA);
+CHECK_NS2STR(ISC__SLET);
+CHECK_NS2STR(ISC__SLET__GREP);
 CHECK_NS2STR(TOTAL_NAMESPACES);
 CHECK_FCT2STR(ISC__INIT);            // FSA start
 CHECK_FCT2STR(ISC__NAMEI);           // FSA end
@@ -411,42 +415,45 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
 
   // CPIs for ISC module
   cpi.insert({ISC__RUNTIME, std::unordered_map<uint16_t, InstStat>()});
-  cpi.insert({ISC__SLET, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__FSA, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__FSA__EXT4, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__SLET, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__SLET__GREP, std::unordered_map<uint16_t, InstStat>()});
 
   cpi.find(9)->second.insert(
       {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {41, InstStat(39, 176, 40, 91, 0, 2, clockPeriod)});
+      {41, InstStat(39, 176, 40, 89, 0, 2, clockPeriod)});
   cpi.find(9)->second.insert(
       {42, InstStat(89, 368, 56, 136, 0, 0, clockPeriod)});
   cpi.find(8)->second.insert({42, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {42, InstStat(68, 276, 56, 130, 0, 2, clockPeriod)});
-  cpi.find(16)->second.insert(
-      {43, InstStat(30, 124, 39, 205, 0, 3, clockPeriod)});
-  cpi.find(16)->second.insert({44, InstStat(11, 20, 6, 30, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert({45, InstStat(8, 20, 7, 31, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert({46, InstStat(15, 44, 8, 61, 0, 1, clockPeriod)});
-  cpi.find(16)->second.insert({47, InstStat(19, 60, 9, 66, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert(
+      {42, InstStat(91, 400, 80, 183, 0, 3, clockPeriod)});
+  cpi.find(15)->second.insert(
+      {43, InstStat(30, 124, 35, 207, 0, 1, clockPeriod)});
+  cpi.find(15)->second.insert({44, InstStat(11, 20, 6, 30, 0, 0, clockPeriod)});
+  cpi.find(15)->second.insert({45, InstStat(8, 20, 7, 31, 0, 0, clockPeriod)});
+  cpi.find(15)->second.insert({46, InstStat(15, 44, 8, 61, 0, 1, clockPeriod)});
+  cpi.find(15)->second.insert({47, InstStat(19, 60, 9, 66, 0, 0, clockPeriod)});
+  cpi.find(15)->second.insert(
       {48, InstStat(18, 84, 16, 58, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert(
+  cpi.find(15)->second.insert(
       {49, InstStat(25, 84, 17, 71, 0, 2, clockPeriod)});
-  cpi.find(16)->second.insert(
+  cpi.find(15)->second.insert(
       {50, InstStat(26, 112, 29, 83, 0, 1, clockPeriod)});
-  cpi.find(16)->second.insert(
+  cpi.find(15)->second.insert(
       {51, InstStat(32, 92, 20, 80, 0, 0, clockPeriod)});
-  cpi.find(16)->second.insert(
+  cpi.find(15)->second.insert(
       {52, InstStat(39, 104, 22, 112, 0, 2, clockPeriod)});
-  cpi.find(16)->second.insert(
+  cpi.find(15)->second.insert(
       {53, InstStat(23, 52, 13, 67, 0, 2, clockPeriod)});
-  cpi.find(13)->second.insert({54, InstStat(18, 52, 9, 46, 0, 0, clockPeriod)});
-  cpi.find(13)->second.insert({55, InstStat(8, 32, 9, 27, 0, 0, clockPeriod)});
+  cpi.find(13)->second.insert({54, InstStat(15, 40, 6, 37, 0, 1, clockPeriod)});
+  cpi.find(13)->second.insert({55, InstStat(11, 28, 5, 26, 0, 1, clockPeriod)});
+  cpi.find(13)->second.insert({56, InstStat(11, 28, 5, 26, 0, 0, clockPeriod)});
+  cpi.find(13)->second.insert({57, InstStat(8, 28, 9, 25, 0, 0, clockPeriod)});
   cpi.find(13)->second.insert(
-      {56, InstStat(13, 48, 14, 39, 0, 0, clockPeriod)});
+      {58, InstStat(11, 44, 13, 36, 0, 0, clockPeriod)});
 
 #define ERR_MSG "Unexpected FUNCTION ID"
   static_assert(FUNCTION::ISC__GET == 41, ERR_MSG);
@@ -463,17 +470,20 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   static_assert(FUNCTION::ISC__DIR_SEARCH_FILE == 52, ERR_MSG);
   static_assert(FUNCTION::ISC__NAMEI == 53, ERR_MSG);
   static_assert(FUNCTION::ISC__START_SLET == 54, ERR_MSG);
-  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 55, ERR_MSG);
-  static_assert(FUNCTION::ISC__ADD_SLET__GREP == 56, ERR_MSG);
+  static_assert(FUNCTION::ISC__SET_OPT == 55, ERR_MSG);
+  static_assert(FUNCTION::ISC__GET_OPT == 56, ERR_MSG);
+  static_assert(FUNCTION::ISC__ADD_SLET__EXT4 == 57, ERR_MSG);
+  static_assert(FUNCTION::ISC__ADD_SLET__GREP == 58, ERR_MSG);
 #undef ERR_MSG
 #define ERR_MSG "Unexpected NAMESPACE ID"
   static_assert(NAMESPACE::HIL == 4, ERR_MSG);
   static_assert(NAMESPACE::NVME__SUBSYSTEM == 8, ERR_MSG);
   static_assert(NAMESPACE::NVME__NAMESPACE == 9, ERR_MSG);
   static_assert(NAMESPACE::ISC__RUNTIME == 13, ERR_MSG);
-  static_assert(NAMESPACE::ISC__SLET == 14, ERR_MSG);
-  static_assert(NAMESPACE::ISC__FSA == 15, ERR_MSG);
-  static_assert(NAMESPACE::ISC__FSA__EXT4 == 16, ERR_MSG);
+  static_assert(NAMESPACE::ISC__FSA == 14, ERR_MSG);
+  static_assert(NAMESPACE::ISC__FSA__EXT4 == 15, ERR_MSG);
+  static_assert(NAMESPACE::ISC__SLET == 16, ERR_MSG);
+  static_assert(NAMESPACE::ISC__SLET__GREP == 17, ERR_MSG);
 
   assert(cpi.size() == NAMESPACE::TOTAL_NAMESPACES || !"Some CPIs are missing");
 }

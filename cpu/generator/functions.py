@@ -159,12 +159,18 @@ function = [
 ]
 
 # add here for change the += to = for testing to avoid comment all the other functions
-#
+# NS
+HIL = 4
+HIL_NVMe_Subsystem = 8
+HIL_NVMe_Namespace = 9
+
 ISC__RUNTIME = 13
-ISC__SLET = 14
-ISC__FSA = 15
-ISC__FSA__EXT4 = 16
-#
+ISC__FSA = 14
+ISC__FSA__EXT4 = 15
+ISC__SLET = 16
+ISC__SLET__GREP = 17
+
+# FCT
 ISC_GET = 41
 ISC_SET = 42
 ISC__INIT = 43
@@ -179,28 +185,32 @@ ISC__GET_EXTENT = 51
 ISC__DIR_SEARCH_FILE = 52
 ISC__NAMEI = 53
 ISC__START_SLET = 54
-ISC__ADD_SLET__EXT4 = 55
-ISC__ADD_SLET__GREP = 56
+ISC__SET_OPT = 55
+ISC__GET_OPT = 56
+ISC__ADD_SLET__EXT4 = 57
+ISC__ADD_SLET__GREP = 58
 
 function = [
-    ["hil/nvme/namespace.cc", "Namespace::isc_get", 9, ISC_GET],
-    ["hil/nvme/subsystem.cc", "Subsystem::isc_get", 8, ISC_GET],
-    ["hil/hil.cc", "HIL::isc_get", 4, ISC_GET],
-    ["hil/nvme/namespace.cc", "Namespace::isc_set", 9, ISC_SET],
-    ["hil/nvme/subsystem.cc", "Subsystem::isc_set", 8, ISC_SET],
-    ["hil/hil.cc", "HIL::isc_set", 4, ISC_SET],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::Ext4",                      ISC__FSA__EXT4, ISC__INIT],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getSuper",                  ISC__FSA__EXT4, ISC__GET_SUPER],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getGrpDesc",                ISC__FSA__EXT4, ISC__GET_GROUP],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInoMap",                 ISC__FSA__EXT4, ISC__GET_IMAP],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInode",                  ISC__FSA__EXT4, ISC__GET_INODE],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getParentInode",            ISC__FSA__EXT4, ISC__GET_INODE_PARENT],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::calcExtentSize",            ISC__FSA__EXT4, ISC__GET_EXTENT_SIZE],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::extractExtents",            ISC__FSA__EXT4, ISC__GET_EXTENT_INTERNAL],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getExtent",                 ISC__FSA__EXT4, ISC__GET_EXTENT],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::dirSearchFile",             ISC__FSA__EXT4, ISC__DIR_SEARCH_FILE],
-    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::namei",                     ISC__FSA__EXT4, ISC__NAMEI],
-    ["isc/runtime.cc", "Runtime::startSlet",                        ISC__RUNTIME, ISC__START_SLET],
-    ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>",    ISC__RUNTIME, ISC__ADD_SLET__EXT4],
-    ["isc/runtime.cc", "Runtime::addSlet<SimpleSSD::ISC::GrepAPP>", ISC__RUNTIME, ISC__ADD_SLET__GREP],
+    ["hil/nvme/namespace.cc", "Namespace::isc_get",      HIL_NVMe_Namespace, ISC_GET],
+    ["hil/nvme/subsystem.cc", "Subsystem::isc_get",      HIL_NVMe_Subsystem, ISC_GET],
+    ["hil/hil.cc"           , "HIL::isc_get"      ,      HIL, ISC_GET],
+    ["hil/nvme/namespace.cc", "Namespace::isc_set",      HIL_NVMe_Namespace, ISC_SET],
+    ["hil/nvme/subsystem.cc", "Subsystem::isc_set",      HIL_NVMe_Subsystem, ISC_SET],
+    ["hil/hil.cc"           , "HIL::isc_set"      ,      HIL, ISC_SET],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::Ext4",           ISC__FSA__EXT4, ISC__INIT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getSuper",       ISC__FSA__EXT4, ISC__GET_SUPER],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getGrpDesc",     ISC__FSA__EXT4, ISC__GET_GROUP],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInoMap",      ISC__FSA__EXT4, ISC__GET_IMAP],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getInode",       ISC__FSA__EXT4, ISC__GET_INODE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getParentInode", ISC__FSA__EXT4, ISC__GET_INODE_PARENT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::calcExtentSize", ISC__FSA__EXT4, ISC__GET_EXTENT_SIZE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::extractExtents", ISC__FSA__EXT4, ISC__GET_EXTENT_INTERNAL],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::getExtent",      ISC__FSA__EXT4, ISC__GET_EXTENT],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::dirSearchFile",  ISC__FSA__EXT4, ISC__DIR_SEARCH_FILE],
+    ["isc/fs/ext4/ext4.cc", "ISC::Ext4::namei",          ISC__FSA__EXT4, ISC__NAMEI],
+    ["isc/runtime.cc", "Runtime::startSlet",             ISC__RUNTIME, ISC__START_SLET],
+    ["isc/runtime.cc", "Runtime::setOpt",                ISC__RUNTIME, ISC__SET_OPT],
+    ["isc/runtime.cc", "Runtime::getOpt",                ISC__RUNTIME, ISC__GET_OPT],
+    ["isc/fs/ext4/ext4.cc", "Runtime::addSlet<SimpleSSD::ISC::Ext4>", ISC__RUNTIME, ISC__ADD_SLET__EXT4],
+    ["isc/slet/grep.cc", "Runtime::addSlet<SimpleSSD::ISC::GrepAPP>", ISC__RUNTIME, ISC__ADD_SLET__GREP],
 ]

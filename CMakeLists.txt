@@ -115,7 +115,6 @@ set(SRC_ISC_SLET
   isc/slet/grep.cc
 )
 set(SRC_ISC_FSA
-  isc/fs/fsa.cc
   isc/fs/ext4/ext4.cc
 )
 set(SRC_HIL_NVME
