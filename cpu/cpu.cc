@@ -62,6 +62,7 @@ constexpr const char *NS2STR[] = {
     enum2str(ISC__FSA__EXT4),
     enum2str(ISC__SLET),
     enum2str(ISC__SLET__GREP),
+    enum2str(ISC__SLET__LISTDIR),
     enum2str(TOTAL_NAMESPACES),
 };
 
@@ -125,6 +126,7 @@ constexpr const char *FCT2STR[] = {
     enum2str(ISC__GET_OPT),
     enum2str(ISC__ADD_SLET__EXT4),
     enum2str(ISC__ADD_SLET__GREP),
+    enum2str(ISC__ADD_SLET__LISTDIR),
     enum2str(TOTAL_FUNCTIONS),
 };
 
@@ -136,7 +138,7 @@ CHECK_NS2STR(TOTAL_NAMESPACES);
 CHECK_FCT2STR(ISC__INIT);            // FSA start
 CHECK_FCT2STR(ISC__NAMEI);           // FSA end
 CHECK_FCT2STR(ISC__START_SLET);      // runtime start
-CHECK_FCT2STR(ISC__ADD_SLET__GREP);  // runtime end
+CHECK_FCT2STR(ISC__ADD_SLET__LISTDIR);  // runtime end
 CHECK_FCT2STR(TOTAL_FUNCTIONS);
 
 InstStat::_InstStat()
@@ -419,19 +421,20 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.insert({ISC__FSA__EXT4, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__SLET, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__SLET__GREP, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__SLET__LISTDIR, std::unordered_map<uint16_t, InstStat>()});
 
   cpi.find(9)->second.insert(
-      {41, InstStat(87, 372, 55, 133, 0, 3, clockPeriod)});
+      {41, InstStat(92, 376, 56, 158, 0, 3, clockPeriod)});
   cpi.find(8)->second.insert({41, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {41, InstStat(39, 176, 40, 89, 0, 2, clockPeriod)});
+      {41, InstStat(41, 176, 40, 90, 0, 1, clockPeriod)});
   cpi.find(9)->second.insert(
       {42, InstStat(89, 368, 56, 136, 0, 0, clockPeriod)});
   cpi.find(8)->second.insert({42, InstStat(29, 84, 20, 54, 0, 0, clockPeriod)});
   cpi.find(4)->second.insert(
-      {42, InstStat(91, 400, 80, 183, 0, 3, clockPeriod)});
+      {42, InstStat(100, 460, 90, 208, 0, 3, clockPeriod)});
   cpi.find(15)->second.insert(
-      {43, InstStat(30, 124, 35, 207, 0, 1, clockPeriod)});
+      {43, InstStat(28, 124, 35, 203, 0, 1, clockPeriod)});
   cpi.find(15)->second.insert({44, InstStat(11, 20, 6, 30, 0, 0, clockPeriod)});
   cpi.find(15)->second.insert({45, InstStat(8, 20, 7, 31, 0, 0, clockPeriod)});
   cpi.find(15)->second.insert({46, InstStat(15, 44, 8, 61, 0, 1, clockPeriod)});
@@ -451,9 +454,18 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.find(13)->second.insert({54, InstStat(15, 40, 6, 37, 0, 1, clockPeriod)});
   cpi.find(13)->second.insert({55, InstStat(11, 28, 5, 26, 0, 1, clockPeriod)});
   cpi.find(13)->second.insert({56, InstStat(11, 28, 5, 26, 0, 0, clockPeriod)});
+  cpi.find(13)->second.insert(
+      {51, InstStat(17, 56, 10, 51, 0, 1, clockPeriod)});
   cpi.find(13)->second.insert({57, InstStat(8, 28, 9, 25, 0, 0, clockPeriod)});
+  cpi.find(15)->second.insert({54, InstStat(1, 0, 0, 1, 0, 0, clockPeriod)});
   cpi.find(13)->second.insert(
       {58, InstStat(11, 44, 13, 36, 0, 0, clockPeriod)});
+  cpi.find(17)->second.insert(
+      {54, InstStat(24, 44, 10, 66, 0, 1, clockPeriod)});
+  cpi.find(13)->second.insert(
+      {59, InstStat(11, 44, 26, 40, 0, 0, clockPeriod)});
+  cpi.find(18)->second.insert(
+      {54, InstStat(19, 56, 13, 51, 0, 2, clockPeriod)});
 
 #define ERR_MSG "Unexpected FUNCTION ID"
   static_assert(FUNCTION::ISC__GET == 41, ERR_MSG);
@@ -484,6 +496,7 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   static_assert(NAMESPACE::ISC__FSA__EXT4 == 15, ERR_MSG);
   static_assert(NAMESPACE::ISC__SLET == 16, ERR_MSG);
   static_assert(NAMESPACE::ISC__SLET__GREP == 17, ERR_MSG);
+  static_assert(NAMESPACE::ISC__SLET__LISTDIR == 18, ERR_MSG);
 
   assert(cpi.size() == NAMESPACE::TOTAL_NAMESPACES || !"Some CPIs are missing");
 }
@@ -845,9 +858,7 @@ void CPU::execute(NAMESPACE ns, FUNCTION fct, DMAFunction &func, void *context,
       }
 
       break;
-    case ISC__RUNTIME:
-    case ISC__SLET:
-    case ISC__FSA:
+    case ISC__RUNTIME ... TOTAL_NAMESPACES:
       if (iscCore.size() > 0) {
         pCore = &iscCore.at(leastBusyCPU(iscCore));
       }
@@ -895,7 +906,8 @@ void CPU::execute(NAMESPACE ns, FUNCTION fct, DMAFunction &func, void *context,
       panic("Namespace %u does not have function %u", ns, fct);
     }
 
-    debugprint(LOG_CPU, "EXEC: %s::%s (+%lu)", NS2STR[ns], FCT2STR[fct], delay);
+    // debugprint(LOG_CPU, "EXEC: %s::%s (+%lu)", NS2STR[ns], FCT2STR[fct],
+    // delay);
     pCore->submitJob(JobEntry(func, context, &inst->second), delay);
   }
   else {
@@ -916,10 +928,7 @@ uint64_t CPU::applyLatency(NAMESPACE ns, FUNCTION fct) {
       }
 
       break;
-    case ISC__RUNTIME:
-    case ISC__SLET:
-    case ISC__FSA:
-    case ISC__FSA__EXT4:
+    case ISC__RUNTIME ... TOTAL_NAMESPACES:
       if (iscCore.size() > 0) {
         pCore = &iscCore.at(leastBusyCPU(iscCore));
       }

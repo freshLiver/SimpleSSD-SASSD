@@ -25,6 +25,15 @@
 // add isc headers after this
 #include "isc/sims/ftl.hh"
 
+#include "isc/runtime.hh"
+
+#include "isc/sims/configs.hh"
+#include "isc/utils/debug.hh"
+
+#define PR_SECTION LOG_HIL_NVME
+
+using namespace SimpleSSD::ISC;
+
 namespace SimpleSSD {
 
 namespace HIL {
@@ -544,8 +553,21 @@ void Namespace::isc_get(SQEntryWrapper &req, RequestFunction &func) {
 
       pContext->buffer = (uint8_t *)calloc(pContext->nlb, info.lbaSize);
 
-      if (pDisk) {
-        pDisk->read(pContext->slba, pContext->nlb, pContext->buffer);
+      // do not read data from disk
+      if (ISC_SUBCMD_IS(pContext->slba, ISC_SUBCMD_SLET_RES)) {
+        pr("Runtime getOpt         -----------------------------------------");
+        auto id = ISC_SUBCMD_OPT(pContext->slba);
+        auto res = ISC::Runtime::getOpt(id, ISC_KEY_RESULT, tick, nullptr);
+        auto psz = ISC::Runtime::getOpt(id, ISC_KEY_RESULT_SIZE, tick, nullptr);
+        auto rsz = MIN(pContext->nlb * info.lbaSize, *(size_t *)psz);
+
+        memcpy(pContext->buffer, res, rsz);
+        pr("result/buffer size: %lu/%lu", *(size_t *)psz,
+           pContext->nlb * info.lbaSize);
+
+        pr("getOpt done            -----------------------------------------");
+        tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__GET_OPT);
+        tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__GET_OPT);
       }
 
       pContext->dma->write(0, pContext->nlb * info.lbaSize, pContext->buffer,

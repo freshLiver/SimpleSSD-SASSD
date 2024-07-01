@@ -112,8 +112,10 @@ const std::string logName[LOG_NUM] = {
     "ISC::UTIL::FTL",     //!< LOG_ISC_UTIL_FTL
     "ISC::UTIL::MEM",     //!< LOG_ISC_UTIL_MEM
     "ISC::RUNTIME",       //!< LOG_ISC_RUNTIME
-    "ISC::SLET",          //!< LOG_ISC_SLET
-    "ISC::FSA",           //!< LOG_ISC_FSA
+    "ISC::SLET",                //!< LOG_ISC_SLET
+    "ISC::SLET::GREP",          //!< LOG_ISC_SLET_GREP
+    "ISC::SLET::LISTDIR",       //!< LOG_ISC_SLET_LISTDIR
+    "ISC::FSA",                 //!< LOG_ISC_FSA
     "ISC::FSA::EXT4",           //!< LOG_ISC_EXT4
 };
 
