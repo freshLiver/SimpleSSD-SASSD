@@ -21,6 +21,8 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
+.cache/
+.cmake/
 
 # Atom editor specific
 .clang_complete
