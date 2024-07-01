@@ -46,6 +46,7 @@ Namespace::~Namespace() {
     delete pDisk;
   }
   ISC::SIM::FTL::destory();
+  ISC::Runtime::destory();
 }
 
 void Namespace::submitCommand(SQEntryWrapper &req, RequestFunction &func) {

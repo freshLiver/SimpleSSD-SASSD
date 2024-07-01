@@ -126,6 +126,7 @@ void HIL::isc_set(Request &req) {
       memcpy(val, data + ISC_KEY_LEN, ISC_VAL_LEN(hReq->length));
 
       ISC::Runtime::setOpt(id, key, val, tick, ctx);
+      free(key);
     }
     else {
       panic("Unexpected ISC-SET CMD: 0x%x", ISC_SUBCMD(slba));
@@ -184,6 +185,8 @@ void HIL::isc_get(Request &hReq) {
     completionQueue.push(*hReq);
 
     updateCompletion();
+
+    delete hReq;
   };
   execute(CPU::HIL, CPU::ISC__GET, doISC, new Request(hReq));
 }
