@@ -21,6 +21,9 @@
 
 #include "util/algorithm.hh"
 
+#include "isc/utils/debug.hh"
+#define PR_SECTION LOG_COMMON
+
 namespace SimpleSSD {
 
 FIFOEntry::FIFOEntry()
@@ -244,6 +247,7 @@ void FIFO::transferRead() {
 
   // We need to split large request
   if (size > param.rqSize) {
+    pr("Cut request (remains %lu)", size);
     FIFOEntry copy = *iter;
 
     // copy is next one
@@ -400,6 +404,7 @@ void FIFO::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
     return;
   }
 
+  pr("Push DMARead request: %lX + %lu", addr, size);
   readQueue.waitQueue.push_back(FIFOEntry(addr, size, buffer, func, context));
 
   transferRead();

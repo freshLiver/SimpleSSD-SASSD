@@ -22,6 +22,9 @@
 #include "hil/nvme/controller.hh"
 #include "util/algorithm.hh"
 
+#include "isc/utils/debug.hh"
+#define PR_SECTION LOG_HIL_NVME
+
 namespace SimpleSSD {
 
 namespace HIL {
@@ -62,16 +65,21 @@ PRPList::PRPList(ConfigData &cfg, DMAFunction &f, void *c, uint64_t prp1,
   uint64_t prp1Size = getPRPSize(prp1);
   uint64_t prp2Size = getPRPSize(prp2);
 
+  pr("PRP(%lu): 1 %lX(%lu) 2 %lX(%lu)", size, prp1, prp1Size, prp2, prp2Size);
+
   // Determine PRP1 and PRP2
   if (totalSize <= pagesize) {
     if (totalSize <= prp1Size) {
       // PRP1 is PRP pointer, PRP2 is not used
       prpList.push_back(PRP(prp1, totalSize));
+      pr(str(__LINE__) ": PRP: push 1 %lX %lu", prp1, totalSize);
     }
     else {
       // PRP1 is PRP pointer, PRP2 is PRP pointer
       prpList.push_back(PRP(prp1, prp1Size));
       prpList.push_back(PRP(prp2, prp2Size));
+      pr(str(__LINE__) ": PRP: push 1/2 %lX %lu", prp1, prp1Size);
+      pr(str(__LINE__) ": PRP: push 2/2 %lX %lu", prp2, prp2Size);
 
       if (prp1Size + prp2Size < totalSize) {
         panic("prp_list: Invalid DPTR size");
@@ -83,6 +91,8 @@ PRPList::PRPList(ConfigData &cfg, DMAFunction &f, void *c, uint64_t prp1,
       // PRP1 is PRP pointer, PRP2 is PRP pointer
       prpList.push_back(PRP(prp1, prp1Size));
       prpList.push_back(PRP(prp2, prp2Size));
+      pr(str(__LINE__) ": PRP: push 1/2 %lX %lu", prp1, prp1Size);
+      pr(str(__LINE__) ": PRP: push 2/2 %lX %lu", prp2, prp2Size);
 
       if (prp1Size + prp2Size < totalSize) {
         panic("prp_list: Invalid DPTR size");
@@ -93,6 +103,8 @@ PRPList::PRPList(ConfigData &cfg, DMAFunction &f, void *c, uint64_t prp1,
 
       // PRP1 is PRP pointer, PRP2 is PRP list
       prpList.push_back(PRP(prp1, prp1Size));
+      pr(str(__LINE__) ": PRP: push 1 %lX %lu", prp1, prp1Size);
+
       getPRPListFromPRP(prp2, totalSize - prp1Size);
     }
   }
@@ -101,9 +113,12 @@ PRPList::PRPList(ConfigData &cfg, DMAFunction &f, void *c, uint64_t prp1,
 
     // PRP1 is PRP pointer, PRP2 is PRP list
     prpList.push_back(PRP(prp1, prp1Size));
+    pr(str(__LINE__) ": PRP: push 1 %lX %lu", prp1, prp1Size);
+
     getPRPListFromPRP(prp2, totalSize - prp1Size);
   }
 
+  // list PRP
   if (immediate) {
     schedule(immediateEvent, getTick());
   }
@@ -113,6 +128,7 @@ PRPList::PRPList(ConfigData &cfg, DMAFunction &f, void *c, uint64_t base,
                  uint64_t size, bool cont)
     : DMAInterface(cfg, f, c), totalSize(size), pagesize(cfg.memoryPageSize) {
   if (cont) {
+    pr("PRP: fixme: When to use ???");
     prpList.push_back(PRP(base, size));
 
     schedule(immediateEvent, getTick());
@@ -139,6 +155,7 @@ void PRPList::getPRPListFromPRP(uint64_t base, uint64_t size) {
       listPRPSize = pThis->getPRPSize(listPRP);
       currentSize += listPRPSize;
 
+      pr("PRPList address: %lX (+%lu/%lu)", listPRP, listPRPSize, currentSize);
       if (listPRP == 0) {
         panic("prp_list: Invalid PRP in PRP List");
       }
@@ -187,6 +204,8 @@ void PRPList::getPRPListFromPRP(uint64_t base, uint64_t size) {
     // Read PRP
     CPUContext *pCPU = new CPUContext(doRead, pContext, CPU::NVME__PRPLIST,
                                       CPU::GET_PRPLIST_FROM_PRP);
+
+    pr("DMARead PRPList: %lX+%lu", base, pContext->currentSize);
     pInterface->dmaRead(base, pContext->currentSize, pContext->buffer,
                         cpuHandler, pCPU);
   }
@@ -211,7 +230,13 @@ void PRPList::read(uint64_t offset, uint64_t length, uint8_t *buffer,
 
     DMAContext *readContext = (DMAContext *)context;
 
+    if (offset != 0)
+      pr("WARN:: PRPList offset is %lu", offset);
+
     for (auto &iter : prpList) {
+      pr("PRPList [%lu/%lu] (%lX, %lu)", offset, currentOffset, iter.addr,
+         iter.size);
+
       if (begin) {
         read = MIN(iter.size, length - totalRead);
         readContext->counter++;

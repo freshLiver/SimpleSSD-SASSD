@@ -19,6 +19,9 @@
 
 #include "hil/nvme/queue.hh"
 
+#include "isc/utils/debug.hh"
+#define PR_SECTION LOG_HIL_NVME
+
 namespace SimpleSSD {
 
 namespace HIL {
