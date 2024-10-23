@@ -117,6 +117,7 @@ set(SRC_ISC_SLET
   isc/slet/grep.cc
   isc/slet/stats32.cc
   isc/slet/stats64.cc
+  isc/slet/copy.cc
 )
 set(SRC_ISC_FSA
   isc/fs/ext4/ext4.cc

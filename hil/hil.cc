@@ -33,6 +33,7 @@
 #include "isc/slet/statdir.hh"
 #include "isc/slet/stats32.hh"
 #include "isc/slet/stats64.hh"
+#include "isc/slet/copy.hh"
 
 using SimpleSSD::ISC::byte;
 
@@ -106,7 +107,8 @@ void HIL::isc_set(Request &req) {
           ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::MD5APP>(tick, ctx) ||
           ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::GrepAPP>(tick, ctx) ||
           ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Stats32APP>(tick, ctx) ||
-          ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Stats64APP>(tick, ctx))
+          ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::Stats64APP>(tick, ctx) ||
+          ISC_STS_FAIL == ISC::Runtime::addSlet<ISC::COPYAPP>(tick, ctx))
         panic("Failed to setup predefined slets");
 
       tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__EXT4);
@@ -115,6 +117,7 @@ void HIL::isc_set(Request &req) {
       tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__GREP);
       tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__STATS32);
       tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__STATS64);
+      tick += applyLatency(CPU::ISC__RUNTIME, CPU::ISC__ADD_SLET__COPY);
       pr("Initialization done    -----------------------------------------");
     }
     else if (ISC_SUBCMD_IS(slba, ISC_SUBCMD_FREE)) {
