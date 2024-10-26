@@ -317,16 +317,17 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.insert({ISC__SLET__GREP, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__SLET__STATS32, std::unordered_map<uint16_t, InstStat>()});
   cpi.insert({ISC__SLET__STATS64, std::unordered_map<uint16_t, InstStat>()});
+  cpi.insert({ISC__SLET__COPY, std::unordered_map<uint16_t, InstStat>()});
   assert(cpi.size() == NAMESPACE::TOTAL_NAMESPACES || !"Some CPIs are missing");
 
-  // clang-format off
+   // clang-format off
   { // used for folding this section
   cpi.find(NVME__NAMESPACE)->second.insert({ISC__GET,InstStat(98,420,56,181,0,2,clockPeriod)});
   cpi.find(NVME__SUBSYSTEM)->second.insert({ISC__GET,InstStat(39,144,28,138,0,1,clockPeriod)});
   cpi.find(HIL)->second.insert({ISC__GET,InstStat(44,176,39,92,0,2,clockPeriod)});
   cpi.find(NVME__NAMESPACE)->second.insert({ISC__SET,InstStat(92,392,66,146,0,3,clockPeriod)});
   cpi.find(NVME__SUBSYSTEM)->second.insert({ISC__SET,InstStat(45,180,32,148,0,2,clockPeriod)});
-  cpi.find(HIL)->second.insert({ISC__SET,InstStat(142,672,130,311,0,5,clockPeriod)});
+  cpi.find(HIL)->second.insert({ISC__SET,InstStat(155,740,143,342,0,3,clockPeriod)});
   cpi.find(ISC__FSA__EXT4)->second.insert({ISC__INIT,InstStat(43,236,59,261,0,4,clockPeriod)});
   cpi.find(ISC__FSA__EXT4)->second.insert({ISC__GET_SUPER,InstStat(11,24,6,31,0,0,clockPeriod)});
   cpi.find(ISC__FSA__EXT4)->second.insert({ISC__GET_GROUP,InstStat(18,112,37,62,0,0,clockPeriod)});
@@ -364,6 +365,9 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   cpi.find(ISC__RUNTIME)->second.insert({ISC__ADD_SLET__STATS64,InstStat(11,44,13,36,0,0,clockPeriod)});
   cpi.find(ISC__SLET__STATS64)->second.insert({ISC__START_SLET,InstStat(119,424,69,323,0,7,clockPeriod)});
   cpi.find(ISC__SLET__STATS64)->second.insert({ISC__TASK1,InstStat(3,20,3,14,0,0,clockPeriod)});
+  cpi.find(ISC__SLET__COPY)->second.insert({ISC__START_SLET,InstStat(26,92,17,83,0,1,clockPeriod)});
+  cpi.find(ISC__RUNTIME)->second.insert({ISC__ADD_SLET__COPY,InstStat(11,44,27,41,0,0,clockPeriod)});
+  cpi.find(ISC__SLET__COPY)->second.insert({ISC__TASK1,InstStat(25,100,19,81,0,2,clockPeriod)});
 
 // check values defines in functions.py match those defined in def.hh
 #define ERR_MSG "Unexpected NAMESPACE ID"
@@ -389,7 +393,8 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   static_assert(NAMESPACE::ISC__SLET__GREP == 19, ERR_MSG);
   static_assert(NAMESPACE::ISC__SLET__STATS32 == 20, ERR_MSG);
   static_assert(NAMESPACE::ISC__SLET__STATS64 == 21, ERR_MSG);
-  static_assert(NAMESPACE::TOTAL_NAMESPACES == 22, ERR_MSG);
+  static_assert(NAMESPACE::ISC__SLET__COPY == 22, ERR_MSG);
+  static_assert(NAMESPACE::TOTAL_NAMESPACES == 23, ERR_MSG);
 #undef ERR_MSG
 #define ERR_MSG "Unexpected FUNCTION ID"
   static_assert(FUNCTION::READ == 0, ERR_MSG);
@@ -460,7 +465,8 @@ CPU::CPU(ConfigReader &c) : conf(c), lastResetStat(0) {
   static_assert(FUNCTION::ISC__ADD_SLET__GREP == 65, ERR_MSG);
   static_assert(FUNCTION::ISC__ADD_SLET__STATS32 == 66, ERR_MSG);
   static_assert(FUNCTION::ISC__ADD_SLET__STATS64 == 67, ERR_MSG);
-  static_assert(FUNCTION::TOTAL_FUNCTIONS == 68, ERR_MSG);
+  static_assert(FUNCTION::ISC__ADD_SLET__COPY == 68, ERR_MSG);
+  static_assert(FUNCTION::TOTAL_FUNCTIONS == 69, ERR_MSG);
 #undef ERR_MSG
   } // used for folding this section
   // clang-format on

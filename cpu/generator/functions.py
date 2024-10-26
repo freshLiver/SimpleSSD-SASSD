@@ -252,5 +252,5 @@ function = [
     ["isc/slet/stats64.cc", "Stats64APP::sum",                              ISC__SLET__STATS64, ISC__TASK1],
     ["isc/slet/copy.cc", "builtin_startup",                                 ISC__SLET__COPY, ISC__START_SLET],
     ["isc/slet/copy.cc", "Runtime::addSlet<SimpleSSD::ISC::COPYAPP>",       ISC__RUNTIME, ISC__ADD_SLET__COPY],
-    ["isc/slet/copy.cc", "COPYAPP::write",                               ISC__SLET__COPY, ISC__TASK1],
+    ["isc/slet/copy.cc", "COPYAPP::write",                                  ISC__SLET__COPY, ISC__TASK1],
 ]
